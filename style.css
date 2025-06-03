@@ -1,45 +1,15 @@
 body {
-  font-family: sans-serif;
   text-align: center;
-  padding: 1rem;
-  background: #f3f3f3;
-}
-
-h1 {
-  color: #333;
-  margin-bottom: 1rem;
-}
-
-#upload {
-  margin: 1rem 0;
+  font-family: sans-serif;
+  margin: 20px;
 }
 
 #canvas-container {
-  position: relative;
-  max-width: 350px;
-  margin: 1rem auto;
-  background: #ccc;
+  width: 100%;
+  overflow: hidden;
 }
 
 canvas {
-  width: 100%;
-  touch-action: none;
-}
-
-.controls {
-  margin-top: 1rem;
-}
-
-button {
-  margin: 0.5rem;
-  padding: 0.5rem 1rem;
-  font-size: 1rem;
-  border: none;
-  border-radius: 8px;
-  background: #3b82f6;
-  color: #fff;
-}
-
-button:hover {
-  background: #2563eb;
+  max-width: 100%;
+  border: 2px solid #333;
 }

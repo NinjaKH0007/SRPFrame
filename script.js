@@ -1,106 +1,59 @@
-let canvas = document.getElementById("canvas");
-let ctx = canvas.getContext("2d");
-let image = new Image();
-let frame = new Image();
-let scale = 1;
-let posX = 0;
-let posY = 0;
-let isDragging = false;
-let startX, startY;
+const upload = document.getElementById('upload');
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+let img = new Image();
+let scale = 1, posX = 0, posY = 0, dragging = false, startX, startY;
 
-canvas.width = 600;
-canvas.height = 600;
+const frame = new Image();
+frame.src = 'frame.png';
 
-// Load frame overlay
-frame.src = "frame.png";
-frame.onload = draw;
-
-// Upload user photo
-document.getElementById("upload").onchange = function (e) {
-  let reader = new FileReader();
-  reader.onload = function (event) {
-    image.src = event.target.result;
-    image.onload = () => {
-      scale = 1;
-      posX = 0;
-      posY = 0;
+upload.onchange = e => {
+  const reader = new FileReader();
+  reader.onload = function(event) {
+    img.src = event.target.result;
+    img.onload = () => {
+      canvas.width = img.width;
+      canvas.height = img.height;
       draw();
     };
   };
   reader.readAsDataURL(e.target.files[0]);
 };
 
-// Zoom buttons
-document.getElementById("zoom-in").onclick = () => {
-  scale += 0.1;
-  draw();
-};
-
-document.getElementById("zoom-out").onclick = () => {
-  scale -= 0.1;
-  if (scale < 0.2) scale = 0.2;
-  draw();
-};
-
-document.getElementById("reset").onclick = () => {
-  scale = 1;
-  posX = 0;
-  posY = 0;
-  draw();
-};
-
-// Download button
-document.getElementById("download").onclick = () => {
-  let link = document.createElement("a");
-  link.download = "SRPFrame.png";
-  link.href = canvas.toDataURL("image/png");
-  link.click();
-};
-
-// Draw function
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  if (image.src) {
-    let imgW = image.width * scale;
-    let imgH = image.height * scale;
-    ctx.drawImage(image, posX, posY, imgW, imgH);
-  }
+  ctx.drawImage(img, posX, posY, img.width * scale, img.height * scale);
   ctx.drawImage(frame, 0, 0, canvas.width, canvas.height);
 }
 
-// Drag move functionality
-canvas.addEventListener("mousedown", startDrag);
-canvas.addEventListener("mousemove", duringDrag);
-canvas.addEventListener("mouseup", endDrag);
-canvas.addEventListener("touchstart", startDrag);
-canvas.addEventListener("touchmove", duringDrag);
-canvas.addEventListener("touchend", endDrag);
-
-function getEventPos(e) {
-  if (e.touches) {
-    return { x: e.touches[0].clientX, y: e.touches[0].clientY };
-  } else {
-    return { x: e.clientX, y: e.clientY };
-  }
-}
-
-function startDrag(e) {
+canvas.addEventListener('wheel', e => {
   e.preventDefault();
-  isDragging = true;
-  let pos = getEventPos(e);
-  startX = pos.x - posX;
-  startY = pos.y - posY;
-}
-
-function duringDrag(e) {
-  if (!isDragging) return;
-  e.preventDefault();
-  let pos = getEventPos(e);
-  posX = pos.x - startX;
-  posY = pos.y - startY;
+  scale += e.deltaY * -0.001;
+  scale = Math.min(Math.max(0.1, scale), 5);
   draw();
-}
+});
 
-function endDrag() {
-  isDragging = false;
-}
+canvas.addEventListener('mousedown', e => {
+  dragging = true;
+  startX = e.offsetX - posX;
+  startY = e.offsetY - posY;
+});
+
+canvas.addEventListener('mouseup', () => dragging = false);
+canvas.addEventListener('mouseout', () => dragging = false);
+
+canvas.addEventListener('mousemove', e => {
+  if (dragging) {
+    posX = e.offsetX - startX;
+    posY = e.offsetY - startY;
+    draw();
+  }
+});
+
+document.getElementById('download').onclick = () => {
+  const link = document.createElement('a');
+  link.download = 'SRPFrame.png';
+  link.href = canvas.toDataURL();
+  link.click();
+  alert("Image saved! Check your Downloads album in Gallery.");
+};

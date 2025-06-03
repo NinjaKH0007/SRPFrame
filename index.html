@@ -1,26 +1,27 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>SRPFrame - Create Your Frame</title>
-  <link rel="stylesheet" href="style.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SRPFrame</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <h1>📸 SRPFrame</h1>
-
-  <input type="file" id="upload" accept="image/*" />
+  <input type="file" id="upload" accept="image/*">
   <div id="canvas-container">
     <canvas id="canvas"></canvas>
   </div>
-
-  <div class="controls">
-    <button id="zoom-in">➕ Zoom In</button>
-    <button id="zoom-out">➖ Zoom Out</button>
-    <button id="reset">Reset</button>
-    <button id="download">📥 Download</button>
-  </div>
+  <button id="download">Download</button>
 
   <script src="script.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js')
+      .then(reg => console.log('Service Worker registered', reg))
+      .catch(err => console.error('Service Worker failed:', err));
+    }
+  </script>
 </body>
 </html>
