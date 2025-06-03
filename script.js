@@ -1,69 +1,99 @@
-const upload = document.getElementById('upload');
 const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
+
+const upload = document.getElementById('upload');
+const zoomRange = document.getElementById('zoomRange');
+const downloadBtn = document.getElementById('downloadBtn');
+
 const frame = new Image();
-frame.src = 'frame.png';
+frame.src = 'frame.png'; // Your frame PNG file, transparent background
 
-const steps = document.querySelectorAll('.step');
-const prevBtn = document.getElementById('prevBtn');
-const nextBtn = document.getElementById('nextBtn');
-
-let currentStep = 0;
 let userImage = null;
+let userImageX = 0;
+let userImageY = 0;
+let scale = 1;
 
-// Show the current step, hide others
-function showStep(index) {
-  steps.forEach((step, i) => {
-    step.classList.toggle('active', i === index);
-  });
-  prevBtn.disabled = index === 0;
-  nextBtn.disabled = (index === 0 && !userImage) || index === steps.length - 1;
-}
+let isDragging = false;
+let dragStartX = 0;
+let dragStartY = 0;
 
 function drawCanvas() {
-  if (!userImage) return;
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  ctx.drawImage(userImage, 0, 0, canvas.width, canvas.height);
-  ctx.drawImage(frame, 0, 0, canvas.width, canvas.height);
+
+  if (userImage) {
+    const w = userImage.width * scale;
+    const h = userImage.height * scale;
+
+    ctx.drawImage(userImage, userImageX, userImageY, w, h);
+  }
+
+  if (frame.complete) {
+    ctx.drawImage(frame, 0, 0, canvas.width, canvas.height);
+  }
 }
 
-upload.addEventListener('change', function(e) {
+// Zoom slider event
+zoomRange.addEventListener('input', () => {
+  scale = parseFloat(zoomRange.value);
+  drawCanvas();
+});
+
+// Drag events
+canvas.addEventListener('mousedown', (e) => {
+  if (!userImage) return;
+  isDragging = true;
+  dragStartX = e.offsetX - userImageX;
+  dragStartY = e.offsetY - userImageY;
+  canvas.style.cursor = 'grabbing';
+});
+
+canvas.addEventListener('mouseup', () => {
+  isDragging = false;
+  canvas.style.cursor = 'grab';
+});
+
+canvas.addEventListener('mouseout', () => {
+  isDragging = false;
+  canvas.style.cursor = 'grab';
+});
+
+canvas.addEventListener('mousemove', (e) => {
+  if (isDragging) {
+    userImageX = e.offsetX - dragStartX;
+    userImageY = e.offsetY - dragStartY;
+    drawCanvas();
+  }
+});
+
+// Handle user image upload
+upload.addEventListener('change', (e) => {
   const file = e.target.files[0];
   if (!file) return;
+
   const reader = new FileReader();
   reader.onload = function(event) {
     userImage = new Image();
     userImage.onload = function() {
+      // Reset scale and position
+      scale = 1;
+      zoomRange.value = scale;
+
+      // Center user image in canvas
+      userImageX = (canvas.width - userImage.width) / 2;
+      userImageY = (canvas.height - userImage.height) / 2;
+
       drawCanvas();
-      // Enable Next button to go preview
-      nextBtn.disabled = false;
+      downloadBtn.disabled = false;
     };
     userImage.src = event.target.result;
   };
   reader.readAsDataURL(file);
 });
 
-prevBtn.addEventListener('click', () => {
-  if (currentStep > 0) {
-    currentStep--;
-    showStep(currentStep);
-  }
-});
-
-nextBtn.addEventListener('click', () => {
-  if (currentStep < steps.length - 1) {
-    currentStep++;
-    showStep(currentStep);
-  }
-});
-
-document.getElementById('download').addEventListener('click', function() {
-  if (!userImage) return alert('Please upload a photo first.');
+// Download button event
+downloadBtn.addEventListener('click', () => {
   const link = document.createElement('a');
-  link.download = 'SRPFrame_Photo.png';
-  link.href = canvas.toDataURL();
+  link.download = 'framed-photo.png';
+  link.href = canvas.toDataURL('image/png');
   link.click();
 });
-
-// Initialize first step
-showStep(currentStep);

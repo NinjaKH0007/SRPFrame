@@ -2,35 +2,25 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>SRPFrame - Profile Frame Campaign</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SRPFrame - Add Frame to Your Photo</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <div class="container">
+    <h1>SRPFrame - Add Your Campaign Frame</h1>
 
-    <h1>Support Our Campaign with SRPFrame!</h1>
+    <h2>Step 1: Upload Your Photo</h2>
+    <input type="file" id="upload" accept="image/*" />
+    
+    <h2>Step 2: Preview & Adjust</h2>
+    <canvas id="canvas" width="500" height="500"></canvas>
+    <br />
+    <label for="zoomRange">Zoom:</label>
+    <input type="range" id="zoomRange" min="1" max="3" step="0.01" value="1" />
 
-    <div class="steps">
-      <div class="step active" id="step1">
-        <h2>Step 1: Upload Your Photo</h2>
-        <input type="file" id="upload" accept="image/*" />
-      </div>
-
-      <div class="step" id="step2">
-        <h2>Step 2: Preview Your Framed Photo</h2>
-        <canvas id="canvas" width="500" height="500"></canvas>
-      </div>
-
-      <div class="step" id="step3">
-        <h2>Step 3: Download Your Framed Photo</h2>
-        <button id="download" class="btn">Download Image</button>
-      </div>
-    </div>
-
-    <div class="navigation">
-      <button id="prevBtn" disabled>Previous</button>
-      <button id="nextBtn" disabled>Next</button>
-    </div>
+    <br /><br />
+    <button id="downloadBtn" disabled>Download Framed Image</button>
   </div>
 
   <script src="script.js"></script>
