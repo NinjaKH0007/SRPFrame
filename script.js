@@ -1,186 +1,174 @@
-const canvas = document.getElementById("canvas");
-const ctx = canvas.getContext("2d");
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
 
-canvas.width = 800;
-canvas.height = 800;
+const upload = document.getElementById('upload');
+const zoomInBtn = document.getElementById('zoomInBtn');
+const zoomOutBtn = document.getElementById('zoomOutBtn');
+const resetBtn = document.getElementById('resetBtn');
+const downloadBtn = document.getElementById('download');
+const shareBtn = document.getElementById('share');
+
+const FRAME_SRC = 'frame.png'; // Make sure frame.png is in the same folder
 
 let userImage = new Image();
 let frameImage = new Image();
-frameImage.src = "frame.png";
+frameImage.src = FRAME_SRC;
 
 let scale = 1;
-let posX = 0;
-let posY = 0;
+let offsetX = 0;
+let offsetY = 0;
 
-let dragging = false;
-let startX, startY;
+let isDragging = false;
+let dragStartX = 0;
+let dragStartY = 0;
 
-// Load user image
-document.getElementById("upload").addEventListener("change", (e) => {
+// When user uploads photo
+upload.addEventListener('change', e => {
+  const file = e.target.files[0];
+  if (!file) return;
+
   const reader = new FileReader();
-  reader.onload = (event) => {
+  reader.onload = function(event) {
     userImage.src = event.target.result;
-    userImage.onload = () => {
-      scale = 1;
-      posX = (canvas.width - userImage.width) / 2;
-      posY = (canvas.height - userImage.height) / 2;
-      drawCanvas();
-    };
-  };
-  reader.readAsDataURL(e.target.files[0]);
-});
-
-// Drag handlers - mouse
-canvas.addEventListener("mousedown", (e) => {
-  dragging = true;
-  startX = e.offsetX;
-  startY = e.offsetY;
-});
-canvas.addEventListener("mouseup", () => (dragging = false));
-canvas.addEventListener("mouseleave", () => (dragging = false));
-canvas.addEventListener("mousemove", (e) => {
-  if (dragging) {
-    posX += e.offsetX - startX;
-    posY += e.offsetY - startY;
-    startX = e.offsetX;
-    startY = e.offsetY;
-    drawCanvas();
   }
+  reader.readAsDataURL(file);
 });
-
-// Drag handlers - touch
-canvas.addEventListener("touchstart", (e) => {
-  e.preventDefault();
-  if (e.touches.length === 1) {
-    dragging = true;
-    const touch = e.touches[0];
-    const rect = canvas.getBoundingClientRect();
-    startX = touch.clientX - rect.left;
-    startY = touch.clientY - rect.top;
-  }
-});
-canvas.addEventListener("touchend", (e) => {
-  e.preventDefault();
-  dragging = false;
-});
-canvas.addEventListener("touchmove", (e) => {
-  e.preventDefault();
-  if (dragging && e.touches.length === 1) {
-    const touch = e.touches[0];
-    const rect = canvas.getBoundingClientRect();
-    const x = touch.clientX - rect.left;
-    const y = touch.clientY - rect.top;
-    posX += x - startX;
-    posY += y - startY;
-    startX = x;
-    startY = y;
-    drawCanvas();
-  }
-});
-
-// Zoom with mouse wheel (keep from previous)
-canvas.addEventListener("wheel", (e) => {
-  e.preventDefault();
-  const wheel = e.deltaY < 0 ? 0.1 : -0.1;
-  setScale(scale + wheel, e.offsetX, e.offsetY);
-});
-
-// Zoom in button
-function zoomIn() {
-  setScale(scale + 0.1, canvas.width / 2, canvas.height / 2);
-}
-// Zoom out button
-function zoomOut() {
-  setScale(scale - 0.1, canvas.width / 2, canvas.height / 2);
-}
-// Reset button
-function resetTransform() {
-  scale = 1;
-  if (userImage.src) {
-    posX = (canvas.width - userImage.width) / 2;
-    posY = (canvas.height - userImage.height) / 2;
-  } else {
-    posX = 0;
-    posY = 0;
-  }
-  drawCanvas();
-}
-
-// Set scale with clamping, adjust posX and posY to zoom at mouse/touch position
-function setScale(newScale, centerX, centerY) {
-  newScale = Math.min(Math.max(0.5, newScale), 3);
-
-  // Calculate image offset for zoom effect at pointer
-  const prevScale = scale;
-  const scaleRatio = newScale / prevScale;
-
-  posX = centerX - scaleRatio * (centerX - posX);
-  posY = centerY - scaleRatio * (centerY - posY);
-
-  scale = newScale;
-  drawCanvas();
-}
 
 // Draw function
-function drawCanvas() {
+function draw() {
+  // Clear
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+  // Draw user image centered with scale and offset
   if (userImage.src) {
-    const w = userImage.width * scale;
-    const h = userImage.height * scale;
-    ctx.drawImage(userImage, posX, posY, w, h);
+    const iw = userImage.width;
+    const ih = userImage.height;
+
+    // Center point of canvas
+    const cx = canvas.width / 2 + offsetX;
+    const cy = canvas.height / 2 + offsetY;
+
+    const dw = iw * scale;
+    const dh = ih * scale;
+
+    ctx.drawImage(userImage, cx - dw/2, cy - dh/2, dw, dh);
   }
 
+  // Draw frame full canvas
   if (frameImage.complete) {
     ctx.drawImage(frameImage, 0, 0, canvas.width, canvas.height);
   }
 }
 
-// Download image (default download behavior)
-function downloadImage() {
-  const link = document.createElement("a");
-  link.download = "SRPFrame.png";
-  link.href = canvas.toDataURL("image/png");
+// Zoom In/Out/Reset
+zoomInBtn.onclick = () => {
+  scale *= 1.1;
+  draw();
+}
+
+zoomOutBtn.onclick = () => {
+  scale /= 1.1;
+  draw();
+}
+
+resetBtn.onclick = () => {
+  scale = 1;
+  offsetX = 0;
+  offsetY = 0;
+  draw();
+}
+
+// Drag to move user image
+canvas.addEventListener('mousedown', e => {
+  isDragging = true;
+  dragStartX = e.clientX;
+  dragStartY = e.clientY;
+});
+
+canvas.addEventListener('mouseup', e => {
+  isDragging = false;
+});
+
+canvas.addEventListener('mouseleave', e => {
+  isDragging = false;
+});
+
+canvas.addEventListener('mousemove', e => {
+  if (isDragging) {
+    const dx = e.clientX - dragStartX;
+    const dy = e.clientY - dragStartY;
+    dragStartX = e.clientX;
+    dragStartY = e.clientY;
+
+    offsetX += dx;
+    offsetY += dy;
+    draw();
+  }
+});
+
+// Touch support for mobile drag
+canvas.addEventListener('touchstart', e => {
+  if(e.touches.length == 1) {
+    isDragging = true;
+    dragStartX = e.touches[0].clientX;
+    dragStartY = e.touches[0].clientY;
+  }
+});
+
+canvas.addEventListener('touchmove', e => {
+  if(isDragging && e.touches.length == 1) {
+    const dx = e.touches[0].clientX - dragStartX;
+    const dy = e.touches[0].clientY - dragStartY;
+    dragStartX = e.touches[0].clientX;
+    dragStartY = e.touches[0].clientY;
+
+    offsetX += dx;
+    offsetY += dy;
+    draw();
+    e.preventDefault();
+  }
+});
+
+canvas.addEventListener('touchend', e => {
+  isDragging = false;
+});
+
+// Download function
+downloadBtn.onclick = () => {
+  const link = document.createElement('a');
+  link.download = 'SRPFrame.png';
+  link.href = canvas.toDataURL('image/png');
   link.click();
 }
 
-// Share function: tries to save to gallery on mobile and also social sharing
-async function shareImage() {
-  // For mobile: try saving image to gallery using the File System Access or fallback to download
-  if (navigator.userAgent.match(/Android/i) || navigator.userAgent.match(/iPhone|iPad|iPod/i)) {
-    try {
-      // Try the Web Share API with files support
-      if (navigator.canShare && navigator.canShare({ files: [] })) {
-        canvas.toBlob(async (blob) => {
-          const file = new File([blob], "SRPFrame.png", { type: "image/png" });
-          try {
-            await navigator.share({
-              files: [file],
-              title: "SRPFrame Photo",
-              text: "Check out my SRPFrame photo!",
-            });
-          } catch (err) {
-            alert("Sharing canceled or failed. The image will be downloaded instead.");
-            downloadImage();
-          }
+// Share function
+shareBtn.onclick = async () => {
+  if (navigator.canShare && navigator.canShare({ files: [] })) {
+    canvas.toBlob(async (blob) => {
+      const filesArray = [
+        new File([blob], 'SRPFrame.png', {
+          type: blob.type,
+          lastModified: new Date().getTime()
+        })
+      ];
+
+      try {
+        await navigator.share({
+          files: filesArray,
+          title: 'SRPFrame',
+          text: 'Check out my photo with SRPFrame!'
         });
-      } else {
-        // Fallback: trigger download to let user save manually (usually ends up in gallery)
-        alert("Your browser does not support sharing files directly. The image will be downloaded. Please save it to your gallery.");
-        downloadImage();
+      } catch (err) {
+        alert('Share failed: ' + err.message);
       }
-    } catch (e) {
-      alert("Sharing failed: " + e.message);
-      downloadImage();
-    }
+    });
   } else {
-    // Desktop fallback: just download and notify
-    alert("Sharing is supported only on mobile devices. The image will be downloaded.");
-    downloadImage();
+    alert('Sharing is not supported on this device. Downloading instead.');
+    downloadBtn.click();
   }
 }
 
-// Initial draw with just the frame
+// When frame image loads, draw initially
 frameImage.onload = () => {
-  drawCanvas();
-};
+  draw();
+}
