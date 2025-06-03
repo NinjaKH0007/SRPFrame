@@ -1,15 +1,13 @@
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
 
-// Set canvas to fixed size for better image quality (adjust as needed)
 canvas.width = 800;
 canvas.height = 800;
 
 let userImage = new Image();
 let frameImage = new Image();
-frameImage.src = "frame.png"; // Your transparent PNG frame overlay
+frameImage.src = "frame.png";
 
-// Initial transform variables
 let scale = 1;
 let posX = 0;
 let posY = 0;
@@ -17,13 +15,12 @@ let posY = 0;
 let dragging = false;
 let startX, startY;
 
-// Handle user image upload
+// Load user image
 document.getElementById("upload").addEventListener("change", (e) => {
   const reader = new FileReader();
   reader.onload = (event) => {
     userImage.src = event.target.result;
     userImage.onload = () => {
-      // Reset position & scale on new image load
       scale = 1;
       posX = (canvas.width - userImage.width) / 2;
       posY = (canvas.height - userImage.height) / 2;
@@ -33,21 +30,14 @@ document.getElementById("upload").addEventListener("change", (e) => {
   reader.readAsDataURL(e.target.files[0]);
 });
 
-// Mouse events for drag to move
+// Drag handlers - mouse
 canvas.addEventListener("mousedown", (e) => {
   dragging = true;
   startX = e.offsetX;
   startY = e.offsetY;
 });
-
-canvas.addEventListener("mouseup", () => {
-  dragging = false;
-});
-
-canvas.addEventListener("mouseleave", () => {
-  dragging = false;
-});
-
+canvas.addEventListener("mouseup", () => (dragging = false));
+canvas.addEventListener("mouseleave", () => (dragging = false));
 canvas.addEventListener("mousemove", (e) => {
   if (dragging) {
     posX += e.offsetX - startX;
@@ -58,7 +48,7 @@ canvas.addEventListener("mousemove", (e) => {
   }
 });
 
-// Touch events for mobile dragging
+// Drag handlers - touch
 canvas.addEventListener("touchstart", (e) => {
   e.preventDefault();
   if (e.touches.length === 1) {
@@ -69,12 +59,10 @@ canvas.addEventListener("touchstart", (e) => {
     startY = touch.clientY - rect.top;
   }
 });
-
 canvas.addEventListener("touchend", (e) => {
   e.preventDefault();
   dragging = false;
 });
-
 canvas.addEventListener("touchmove", (e) => {
   e.preventDefault();
   if (dragging && e.touches.length === 1) {
@@ -90,36 +78,57 @@ canvas.addEventListener("touchmove", (e) => {
   }
 });
 
-// Zoom with mouse wheel
+// Zoom with mouse wheel (keep from previous)
 canvas.addEventListener("wheel", (e) => {
   e.preventDefault();
-  const zoomAmount = -e.deltaY * 0.001;
-  let newScale = scale + zoomAmount;
+  const wheel = e.deltaY < 0 ? 0.1 : -0.1;
+  setScale(scale + wheel, e.offsetX, e.offsetY);
+});
 
-  // Clamp scale between 0.5 and 3
+// Zoom in button
+function zoomIn() {
+  setScale(scale + 0.1, canvas.width / 2, canvas.height / 2);
+}
+// Zoom out button
+function zoomOut() {
+  setScale(scale - 0.1, canvas.width / 2, canvas.height / 2);
+}
+// Reset button
+function resetTransform() {
+  scale = 1;
+  if (userImage.src) {
+    posX = (canvas.width - userImage.width) / 2;
+    posY = (canvas.height - userImage.height) / 2;
+  } else {
+    posX = 0;
+    posY = 0;
+  }
+  drawCanvas();
+}
+
+// Set scale with clamping, adjust posX and posY to zoom at mouse/touch position
+function setScale(newScale, centerX, centerY) {
   newScale = Math.min(Math.max(0.5, newScale), 3);
 
-  // To zoom relative to mouse position:
-  const rect = canvas.getBoundingClientRect();
-  const mx = e.clientX - rect.left;
-  const my = e.clientY - rect.top;
+  // Calculate image offset for zoom effect at pointer
+  const prevScale = scale;
+  const scaleRatio = newScale / prevScale;
 
-  // Calculate offset to keep zoom focused on cursor
-  posX -= (mx / scale - mx / newScale);
-  posY -= (my / scale - my / newScale);
+  posX = centerX - scaleRatio * (centerX - posX);
+  posY = centerY - scaleRatio * (centerY - posY);
 
   scale = newScale;
   drawCanvas();
-});
+}
 
-// Draw the canvas with user image and frame overlay
+// Draw function
 function drawCanvas() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
   if (userImage.src) {
-    const imgW = userImage.width * scale;
-    const imgH = userImage.height * scale;
-    ctx.drawImage(userImage, posX, posY, imgW, imgH);
+    const w = userImage.width * scale;
+    const h = userImage.height * scale;
+    ctx.drawImage(userImage, posX, posY, w, h);
   }
 
   if (frameImage.complete) {
@@ -127,7 +136,7 @@ function drawCanvas() {
   }
 }
 
-// Download canvas image
+// Download image (default download behavior)
 function downloadImage() {
   const link = document.createElement("a");
   link.download = "SRPFrame.png";
@@ -135,25 +144,43 @@ function downloadImage() {
   link.click();
 }
 
-// Share image using Web Share API (mobile browsers support)
-function shareImage() {
-  if (!navigator.canShare || !navigator.canShare({ files: [] })) {
-    alert("Your browser does not support sharing files. Please use the Download button.");
-    return;
+// Share function: tries to save to gallery on mobile and also social sharing
+async function shareImage() {
+  // For mobile: try saving image to gallery using the File System Access or fallback to download
+  if (navigator.userAgent.match(/Android/i) || navigator.userAgent.match(/iPhone|iPad|iPod/i)) {
+    try {
+      // Try the Web Share API with files support
+      if (navigator.canShare && navigator.canShare({ files: [] })) {
+        canvas.toBlob(async (blob) => {
+          const file = new File([blob], "SRPFrame.png", { type: "image/png" });
+          try {
+            await navigator.share({
+              files: [file],
+              title: "SRPFrame Photo",
+              text: "Check out my SRPFrame photo!",
+            });
+          } catch (err) {
+            alert("Sharing canceled or failed. The image will be downloaded instead.");
+            downloadImage();
+          }
+        });
+      } else {
+        // Fallback: trigger download to let user save manually (usually ends up in gallery)
+        alert("Your browser does not support sharing files directly. The image will be downloaded. Please save it to your gallery.");
+        downloadImage();
+      }
+    } catch (e) {
+      alert("Sharing failed: " + e.message);
+      downloadImage();
+    }
+  } else {
+    // Desktop fallback: just download and notify
+    alert("Sharing is supported only on mobile devices. The image will be downloaded.");
+    downloadImage();
   }
-  canvas.toBlob((blob) => {
-    const file = new File([blob], "SRPFrame.png", { type: "image/png" });
-    navigator.share({
-      files: [file],
-      title: "SRPFrame Photo",
-      text: "Check out my SRPFrame photo!",
-    }).catch((error) => {
-      console.error("Sharing failed", error);
-    });
-  });
 }
 
-// Initial draw to show just the frame (if needed)
+// Initial draw with just the frame
 frameImage.onload = () => {
   drawCanvas();
 };
