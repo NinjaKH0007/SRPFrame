@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>SRPFrame - Profile Frame Campaign</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="container">
+
+    <h1>Support Our Campaign with SRPFrame!</h1>
+
+    <div class="steps">
+      <div class="step active" id="step1">
+        <h2>Step 1: Upload Your Photo</h2>
+        <input type="file" id="upload" accept="image/*" />
+      </div>
+
+      <div class="step" id="step2">
+        <h2>Step 2: Preview Your Framed Photo</h2>
+        <canvas id="canvas" width="500" height="500"></canvas>
+      </div>
+
+      <div class="step" id="step3">
+        <h2>Step 3: Download Your Framed Photo</h2>
+        <button id="download" class="btn">Download Image</button>
+      </div>
+    </div>
+
+    <div class="navigation">
+      <button id="prevBtn" disabled>Previous</button>
+      <button id="nextBtn" disabled>Next</button>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

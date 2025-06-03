@@ -1,0 +1,64 @@
+body {
+  font-family: Arial, sans-serif;
+  background: #f0f2f5;
+  color: #333;
+  text-align: center;
+  padding: 20px;
+}
+
+.container {
+  max-width: 600px;
+  margin: 0 auto;
+  background: white;
+  padding: 25px;
+  border-radius: 8px;
+  box-shadow: 0 0 12px rgba(0,0,0,0.1);
+}
+
+h1 {
+  margin-bottom: 20px;
+}
+
+.steps {
+  min-height: 400px;
+}
+
+.step {
+  display: none;
+}
+
+.step.active {
+  display: block;
+}
+
+canvas {
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  max-width: 100%;
+  margin-top: 10px;
+}
+
+.navigation {
+  margin-top: 20px;
+}
+
+button {
+  background-color: #0057ff;
+  color: white;
+  border: none;
+  padding: 12px 22px;
+  margin: 0 10px;
+  font-size: 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+button:hover:not(:disabled) {
+  background-color: #003bb5;
+}
