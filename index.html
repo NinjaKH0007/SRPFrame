@@ -4,24 +4,19 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>SRPFrame</title>
-  <link rel="manifest" href="manifest.json">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <h1>📸 SRPFrame</h1>
-  <input type="file" id="upload" accept="image/*">
-  <div id="canvas-container">
+  <h1>🎉 SRPFrame</h1>
+  
+  <div class="canvas-wrap">
     <canvas id="canvas"></canvas>
   </div>
-  <button id="download">Download</button>
+
+  <input type="file" id="upload" accept="image/*">
+  <button onclick="downloadImage()">📥 Download</button>
+  <button onclick="shareImage()">📤 Share</button>
 
   <script src="script.js"></script>
-  <script>
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('sw.js')
-      .then(reg => console.log('Service Worker registered', reg))
-      .catch(err => console.error('Service Worker failed:', err));
-    }
-  </script>
 </body>
 </html>

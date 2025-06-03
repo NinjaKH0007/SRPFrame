@@ -1,59 +1,106 @@
-const upload = document.getElementById('upload');
-const canvas = document.getElementById('canvas');
-const ctx = canvas.getContext('2d');
-let img = new Image();
-let scale = 1, posX = 0, posY = 0, dragging = false, startX, startY;
+let canvas = document.getElementById("canvas");
+let ctx = canvas.getContext("2d");
+canvas.width = 800;
+canvas.height = 800;
 
-const frame = new Image();
-frame.src = 'frame.png';
+let userImage = new Image();
+let frameImage = new Image();
+frameImage.src = "frame.png"; // your overlay frame image (transparent PNG)
 
-upload.onchange = e => {
-  const reader = new FileReader();
+let scale = 1;
+let posX = 0;
+let posY = 0;
+let dragging = false;
+let startX, startY;
+
+document.getElementById("upload").addEventListener("change", function(e) {
+  let reader = new FileReader();
   reader.onload = function(event) {
-    img.src = event.target.result;
-    img.onload = () => {
-      canvas.width = img.width;
-      canvas.height = img.height;
-      draw();
-    };
+    userImage.src = event.target.result;
+    userImage.onload = () => drawCanvas();
   };
   reader.readAsDataURL(e.target.files[0]);
-};
-
-function draw() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  ctx.drawImage(img, posX, posY, img.width * scale, img.height * scale);
-  ctx.drawImage(frame, 0, 0, canvas.width, canvas.height);
-}
-
-canvas.addEventListener('wheel', e => {
-  e.preventDefault();
-  scale += e.deltaY * -0.001;
-  scale = Math.min(Math.max(0.1, scale), 5);
-  draw();
 });
 
-canvas.addEventListener('mousedown', e => {
+// Zoom & Pan handlers
+canvas.addEventListener("mousedown", (e) => {
   dragging = true;
-  startX = e.offsetX - posX;
-  startY = e.offsetY - posY;
+  startX = e.offsetX;
+  startY = e.offsetY;
 });
 
-canvas.addEventListener('mouseup', () => dragging = false);
-canvas.addEventListener('mouseout', () => dragging = false);
+canvas.addEventListener("mouseup", () => dragging = false);
 
-canvas.addEventListener('mousemove', e => {
+canvas.addEventListener("mousemove", (e) => {
   if (dragging) {
-    posX = e.offsetX - startX;
-    posY = e.offsetY - startY;
-    draw();
+    posX += (e.offsetX - startX);
+    posY += (e.offsetY - startY);
+    startX = e.offsetX;
+    startY = e.offsetY;
+    drawCanvas();
   }
 });
 
-document.getElementById('download').onclick = () => {
-  const link = document.createElement('a');
-  link.download = 'SRPFrame.png';
-  link.href = canvas.toDataURL();
+// Touch events for mobile
+canvas.addEventListener("touchstart", (e) => {
+  e.preventDefault();
+  dragging = true;
+  let touch = e.touches[0];
+  startX = touch.clientX - canvas.getBoundingClientRect().left;
+  startY = touch.clientY - canvas.getBoundingClientRect().top;
+});
+
+canvas.addEventListener("touchend", () => dragging = false);
+
+canvas.addEventListener("touchmove", (e) => {
+  if (dragging) {
+    let touch = e.touches[0];
+    let x = touch.clientX - canvas.getBoundingClientRect().left;
+    let y = touch.clientY - canvas.getBoundingClientRect().top;
+    posX += (x - startX);
+    posY += (y - startY);
+    startX = x;
+    startY = y;
+    drawCanvas();
+  }
+});
+
+// Zoom controls with mouse wheel or pinch zoom
+canvas.addEventListener("wheel", (e) => {
+  e.preventDefault();
+  scale += e.deltaY * -0.001;
+  scale = Math.min(Math.max(0.5, scale), 3);
+  drawCanvas();
+});
+
+function drawCanvas() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  if (userImage.src) {
+    let imgW = userImage.width * scale;
+    let imgH = userImage.height * scale;
+    ctx.drawImage(userImage, posX, posY, imgW, imgH);
+  }
+  ctx.drawImage(frameImage, 0, 0, canvas.width, canvas.height);
+}
+
+function downloadImage() {
+  let link = document.createElement("a");
+  link.download = "SRPFrame.png";
+  link.href = canvas.toDataURL("image/png");
   link.click();
-  alert("Image saved! Check your Downloads album in Gallery.");
-};
+}
+
+function shareImage() {
+  if (!navigator.canShare) {
+    alert("Share not supported — use Download button instead.");
+    return;
+  }
+  canvas.toBlob(blob => {
+    const file = new File([blob], "SRPFrame.png", { type: "image/png" });
+    navigator.share({
+      files: [file],
+      title: "SRPFrame Photo",
+      text: "Here's my SRPFrame pic!"
+    });
+  });
+}
