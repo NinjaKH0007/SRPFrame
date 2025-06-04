@@ -1,7 +1,8 @@
 body {
   font-family: sans-serif;
   text-align: center;
-  background: #f0f0f0;
+  background: #eee;
+  margin: 0;
   padding: 20px;
 }
 
@@ -13,25 +14,20 @@ canvas {
   display: block;
   margin: 20px auto;
   background: #fff;
-  border: 2px solid #333;
-  max-width: 100%;
+  border: 2px solid #222;
+  touch-action: none;
 }
 
 .controls button {
   margin: 5px;
   padding: 10px 15px;
   border: none;
-  border-radius: 6px;
   background: #007bff;
   color: #fff;
-  font-size: 14px;
+  border-radius: 5px;
   cursor: pointer;
 }
 
 .controls button:hover {
   background: #0056b3;
-}
-
-input[type="file"] {
-  margin: 15px;
 }
