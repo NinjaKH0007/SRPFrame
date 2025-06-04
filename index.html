@@ -2,44 +2,60 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
 <title>SRPFrame</title>
 <style>
   body {
     font-family: Arial, sans-serif;
-    text-align: center;
     margin: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  #canvasContainer {
+    position: relative;
+    max-width: 100%;
+    border: 1px solid #ccc;
+    touch-action: none; /* prevent default gestures */
   }
   canvas {
-    border: 1px solid #ccc;
-    touch-action: none;
+    display: block;
     max-width: 100%;
+    height: auto;
+    background: #eee;
   }
   #controls {
-    margin: 10px 0;
+    margin-top: 10px;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: center;
   }
-  button {
-    margin: 5px;
-  }
-  input[type="file"] {
-    margin: 10px 0;
+  button, input[type="file"] {
+    padding: 10px 15px;
+    font-size: 16px;
+    cursor: pointer;
   }
 </style>
 </head>
 <body>
 
-<h1>SRPFrame</h1>
+<h1>SRPFrame - Frame Your Photo</h1>
 
-<input type="file" id="upload" accept="image/*" />
-<div id="controls">
-  <button id="zoomIn">Zoom In +</button>
-  <button id="zoomOut">Zoom Out -</button>
-  <button id="reset">Reset</button>
-  <button id="download">Download</button>
+<div id="canvasContainer">
+  <canvas id="canvas"></canvas>
 </div>
 
-<canvas id="canvas" width="400" height="400"></canvas>
+<div id="controls">
+  <input type="file" id="upload" accept="image/*" />
+  <button id="zoomInBtn">Zoom In +</button>
+  <button id="zoomOutBtn">Zoom Out -</button>
+  <button id="resetBtn">Reset</button>
+  <button id="downloadBtn">Download</button>
+  <button id="shareBtn">Share</button>
+</div>
 
 <script src="script.js"></script>
+
 </body>
 </html>
