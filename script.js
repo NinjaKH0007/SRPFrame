@@ -21,7 +21,7 @@ canvas.height = LOGICAL_SIZE;
 
 // State for user image transform
 let scale = 1;
-let minScale = 1;
+let minScale = 0.3;  // <-- zoom out more
 let maxScale = 4;
 let posX = 0;
 let posY = 0;
@@ -65,7 +65,7 @@ function fitUserImage() {
   if (!userImage) return;
   const scaleX = LOGICAL_SIZE / userImage.width;
   const scaleY = LOGICAL_SIZE / userImage.height;
-  minScale = Math.min(scaleX, scaleY, 1);
+  minScale = Math.min(scaleX, scaleY, 0.3); // allow zoom out more here
   scale = minScale;
   posX = 0;
   posY = 0;
@@ -162,81 +162,139 @@ function getPointerPos(evt) {
   return null;
 }
 
-// Dragging with mouse or single touch
-canvas.addEventListener('mousedown', (evt) => {
-  if (!userImage) return;
-  isDragging = true;
-  dragStart = getPointerPos(evt);
-});
-canvas.addEventListener('touchstart', (evt) => {
-  if (!userImage) return;
-  if (evt.touches.length === 1) {
-    isDragging = true;
+// Dragging with mouse or single touch (support pointer events if available)
+if(window.PointerEvent){
+  canvas.addEventListener('pointerdown', pointerDown);
+  canvas.addEventListener('pointermove', pointerMove);
+  canvas.addEventListener('pointerup', pointerUp);
+  canvas.addEventListener('pointercancel', pointerUp);
+}else{
+  // fallback mouse/touch events
+  canvas.addEventListener('mousedown', mouseDown);
+  canvas.addEventListener('mousemove', mouseMove);
+  canvas.addEventListener('mouseup', mouseUp);
+  canvas.addEventListener('mouseleave', mouseUp);
+  canvas.addEventListener('touchstart', touchStart, {passive:false});
+  canvas.addEventListener('touchmove', touchMove, {passive:false});
+  canvas.addEventListener('touchend', touchEnd);
+}
+
+let pointers = [];
+function pointerDown(evt) {
+  if(!userImage) return;
+  evt.preventDefault();
+  pointers.push(evt);
+  if(pointers.length === 1){
     dragStart = getPointerPos(evt);
-  } else if (evt.touches.length === 2) {
+    isDragging = true;
+  } else if(pointers.length === 2){
     isDragging = false;
-    initialPinchDistance = getPinchDistance(evt.touches);
+    initialPinchDistance = getDistance(pointers[0], pointers[1]);
     lastScale = scale;
   }
-});
-canvas.addEventListener('mousemove', (evt) => {
-  if (!isDragging || !userImage) return;
-  const pos = getPointerPos(evt);
-  if (!pos || !dragStart) return;
+}
 
-  const dx = pos.x - dragStart.x;
-  const dy = pos.y - dragStart.y;
-  posX += dx * (LOGICAL_SIZE / canvas.getBoundingClientRect().width);
-  posY += dy * (LOGICAL_SIZE / canvas.getBoundingClientRect().height);
-  dragStart = pos;
-  draw();
-});
-canvas.addEventListener('touchmove', (evt) => {
-  if (!userImage) return;
+function pointerMove(evt) {
+  if(!userImage) return;
   evt.preventDefault();
-
-  if (evt.touches.length === 1 && isDragging) {
+  for(let i=0; i<pointers.length; i++){
+    if(pointers[i].pointerId === evt.pointerId){
+      pointers[i] = evt;
+      break;
+    }
+  }
+  if(pointers.length === 1 && isDragging){
     const pos = getPointerPos(evt);
-    if (!pos || !dragStart) return;
+    if(!pos || !dragStart) return;
     const dx = pos.x - dragStart.x;
     const dy = pos.y - dragStart.y;
     posX += dx * (LOGICAL_SIZE / canvas.getBoundingClientRect().width);
     posY += dy * (LOGICAL_SIZE / canvas.getBoundingClientRect().height);
     dragStart = pos;
     draw();
-  } else if (evt.touches.length === 2) {
-    // pinch zoom
-    const newDistance = getPinchDistance(evt.touches);
-    if (!initialPinchDistance) {
-      initialPinchDistance = newDistance;
-    } else {
-      let scaleFactor = newDistance / initialPinchDistance;
+  } else if(pointers.length === 2){
+    const dist = getDistance(pointers[0], pointers[1]);
+    if(!initialPinchDistance) initialPinchDistance = dist;
+    else{
+      const scaleFactor = dist / initialPinchDistance;
       scale = Math.min(maxScale, Math.max(minScale, lastScale * scaleFactor));
       draw();
     }
   }
-}, { passive: false });
+}
 
-canvas.addEventListener('mouseup', () => {
+function pointerUp(evt) {
+  if(!userImage) return;
+  evt.preventDefault();
+  pointers = pointers.filter(p => p.pointerId !== evt.pointerId);
+  if(pointers.length < 2){
+    initialPinchDistance = null;
+    lastScale = scale;
+  }
+  if(pointers.length === 0){
+    isDragging = false;
+    dragStart = null;
+  }
+}
+
+// Mouse fallback
+function mouseDown(evt){
+  if(!userImage) return;
+  isDragging = true;
+  dragStart = getPointerPos(evt);
+}
+
+function mouseMove(evt){
+  if(!isDragging || !userImage) return;
+  const pos = getPointerPos(evt);
+  if(!pos || !dragStart) return;
+  const dx = pos.x - dragStart.x;
+  const dy = pos.y - dragStart.y;
+  posX += dx * (LOGICAL_SIZE / canvas.getBoundingClientRect().width);
+  posY += dy * (LOGICAL_SIZE / canvas.getBoundingClientRect().height);
+  dragStart = pos;
+  draw();
+}
+
+function mouseUp(evt){
   isDragging = false;
   dragStart = null;
-});
-canvas.addEventListener('mouseleave', () => {
-  isDragging = false;
-  dragStart = null;
-});
-canvas.addEventListener('touchend', (evt) => {
-  if (evt.touches.length === 0) {
+}
+
+// Touch fallback (single finger drag + pinch handled in pointer events, but fallback here)
+function touchStart(evt){
+  if(!userImage) return;
+  if(evt.touches.length === 1){
+    isDragging = true;
+    dragStart = getPointerPos(evt);
+  }
+}
+function touchMove(evt){
+  if(!isDragging || !userImage) return;
+  if(evt.touches.length === 1){
+    const pos = getPointerPos(evt);
+    if(!pos || !dragStart) return;
+    const dx = pos.x - dragStart.x;
+    const dy = pos.y - dragStart.y;
+    posX += dx * (LOGICAL_SIZE / canvas.getBoundingClientRect().width);
+    posY += dy * (LOGICAL_SIZE / canvas.getBoundingClientRect().height);
+    dragStart = pos;
+    draw();
+  } else if(evt.touches.length === 2){
+    evt.preventDefault(); // prevent page scroll
+  }
+}
+function touchEnd(evt){
+  if(evt.touches.length === 0){
     isDragging = false;
     dragStart = null;
     initialPinchDistance = null;
     lastScale = scale;
   }
-});
+}
 
-// Helpers
-function getPinchDistance(touches) {
-  const dx = touches[0].clientX - touches[1].clientX;
-  const dy = touches[0].clientY - touches[1].clientY;
-  return Math.sqrt(dx * dx + dy * dy);
+function getDistance(p1, p2){
+  const dx = p1.clientX - p2.clientX;
+  const dy = p1.clientY - p2.clientY;
+  return Math.sqrt(dx*dx + dy*dy);
 }
