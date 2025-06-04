@@ -3,29 +3,49 @@ body {
   text-align: center;
   background: #eee;
   margin: 0;
-  padding: 20px;
+  padding: 10px;
 }
 
 h1 {
   color: #333;
+  font-size: 1.5rem;
+  margin-bottom: 10px;
+}
+
+input[type="file"] {
+  margin: 10px 0;
+}
+
+.canvas-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  max-width: 100%;
 }
 
 canvas {
-  display: block;
-  margin: 20px auto;
+  width: 100%;
+  max-width: 500px;
+  height: auto;
   background: #fff;
-  border: 2px solid #222;
+  border: 2px solid #333;
   touch-action: none;
 }
 
+.controls {
+  margin-top: 10px;
+}
+
 .controls button {
-  margin: 5px;
-  padding: 10px 15px;
+  margin: 5px 2px;
+  padding: 10px 12px;
   border: none;
   background: #007bff;
   color: #fff;
   border-radius: 5px;
   cursor: pointer;
+  font-size: 0.9rem;
 }
 
 .controls button:hover {

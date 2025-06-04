@@ -16,12 +16,13 @@ let isDragging = false;
 let dragStartX = 0;
 let dragStartY = 0;
 
-frameImg.src = "frame.png"; // your frame image
+canvas.width = 1080;
+canvas.height = 1080;
+
+frameImg.src = "frame.png";
+frameImg.onload = draw;
 
 function draw() {
-  canvas.width = 1080;
-  canvas.height = 1080;
-
   ctx.fillStyle = "#fff";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -51,7 +52,6 @@ upload.addEventListener("change", (e) => {
   reader.readAsDataURL(file);
 });
 
-// Zoom in/out/reset
 zoomIn.addEventListener("click", () => {
   scale += 0.1;
   draw();
@@ -71,18 +71,20 @@ reset.addEventListener("click", () => {
   }
 });
 
-// Drag to move image
+// Mouse drag
 canvas.addEventListener("mousedown", (e) => {
   if (!userImg) return;
   isDragging = true;
-  dragStartX = e.offsetX - posX;
-  dragStartY = e.offsetY - posY;
+  const scaleFactor = canvas.width / canvas.getBoundingClientRect().width;
+  dragStartX = (e.clientX - canvas.getBoundingClientRect().left) * scaleFactor - posX;
+  dragStartY = (e.clientY - canvas.getBoundingClientRect().top) * scaleFactor - posY;
 });
 
 canvas.addEventListener("mousemove", (e) => {
   if (isDragging) {
-    posX = e.offsetX - dragStartX;
-    posY = e.offsetY - dragStartY;
+    const scaleFactor = canvas.width / canvas.getBoundingClientRect().width;
+    posX = (e.clientX - canvas.getBoundingClientRect().left) * scaleFactor - dragStartX;
+    posY = (e.clientY - canvas.getBoundingClientRect().top) * scaleFactor - dragStartY;
     draw();
   }
 });
@@ -90,23 +92,23 @@ canvas.addEventListener("mousemove", (e) => {
 canvas.addEventListener("mouseup", () => { isDragging = false; });
 canvas.addEventListener("mouseleave", () => { isDragging = false; });
 
-// Touch support
+// Touch drag
 canvas.addEventListener("touchstart", (e) => {
   if (!userImg) return;
   isDragging = true;
   const touch = e.touches[0];
-  const rect = canvas.getBoundingClientRect();
-  dragStartX = touch.clientX - rect.left - posX;
-  dragStartY = touch.clientY - rect.top - posY;
+  const scaleFactor = canvas.width / canvas.getBoundingClientRect().width;
+  dragStartX = (touch.clientX - canvas.getBoundingClientRect().left) * scaleFactor - posX;
+  dragStartY = (touch.clientY - canvas.getBoundingClientRect().top) * scaleFactor - posY;
   e.preventDefault();
 });
 
 canvas.addEventListener("touchmove", (e) => {
   if (isDragging) {
     const touch = e.touches[0];
-    const rect = canvas.getBoundingClientRect();
-    posX = touch.clientX - rect.left - dragStartX;
-    posY = touch.clientY - rect.top - dragStartY;
+    const scaleFactor = canvas.width / canvas.getBoundingClientRect().width;
+    posX = (touch.clientX - canvas.getBoundingClientRect().left) * scaleFactor - dragStartX;
+    posY = (touch.clientY - canvas.getBoundingClientRect().top) * scaleFactor - dragStartY;
     draw();
   }
   e.preventDefault();
@@ -128,21 +130,19 @@ download.addEventListener("click", () => {
 shareBtn.addEventListener("click", () => {
   canvas.toBlob((blob) => {
     const file = new File([blob], "SRPFrame.png", { type: "image/png" });
-
     if (navigator.canShare && navigator.canShare({ files: [file] })) {
       navigator.share({
-        title: "My SRPFrame Picture",
+        title: "My SRPFrame",
         files: [file],
       })
-      .then(() => console.log("Shared successfully"))
+      .then(() => console.log("Shared"))
       .catch((err) => console.error("Share failed:", err));
-
     } else {
       const link = document.createElement("a");
       link.download = "SRPFrame.png";
       link.href = URL.createObjectURL(blob);
       link.click();
-      alert("Downloaded — you can now share it via your gallery or apps.");
+      alert("Downloaded — you can now share it manually.");
     }
   }, "image/png", 1.0);
 });
