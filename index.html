@@ -1,56 +1,23 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>SRPFrame - Add Your Photo Frame</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      text-align: center;
-      padding: 20px;
-      background: #f0f0f0;
-    }
-    #canvas {
-      border: 2px solid #333;
-      background: white;
-      max-width: 100%;
-      height: auto;
-      touch-action: none;
-    }
-    input[type="file"] {
-      margin-bottom: 15px;
-    }
-    .controls button {
-      margin: 0 5px;
-      padding: 8px 16px;
-      font-size: 16px;
-      cursor: pointer;
-    }
-    button#download, button#share {
-      margin: 10px 5px;
-      padding: 10px 20px;
-      font-size: 18px;
-      cursor: pointer;
-    }
-  </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SRPFrame - Profile Frame Maker</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <h1>SRPFrame - Add Your Photo Frame</h1>
+  <h1>📸 SRPFrame - Add Your Frame!</h1>
 
-  <input type="file" id="upload" accept="image/*" />
+  <input type="file" id="upload" accept="image/*">
+  <canvas id="canvas"></canvas>
 
   <div class="controls">
-    <button id="zoomInBtn">➕ Zoom In</button>
-    <button id="zoomOutBtn">➖ Zoom Out</button>
-    <button id="resetBtn">🔄 Reset</button>
-  </div>
-
-  <canvas id="canvas" width="800" height="800"></canvas>
-
-  <div>
-    <button id="download">💾 Download</button>
-    <button id="share">📤 Share</button>
+    <button id="zoomIn">Zoom In ➕</button>
+    <button id="zoomOut">Zoom Out ➖</button>
+    <button id="reset">Reset ♻️</button>
+    <button id="download">Download 📥</button>
+    <button id="shareBtn">Share 📤</button>
   </div>
 
   <script src="script.js"></script>
