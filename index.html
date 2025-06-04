@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
-<title>SRPFrame</title>
+<title>SRPFrame Responsive</title>
 <style>
   body {
     font-family: Arial, sans-serif;
@@ -15,14 +15,15 @@
   #canvasContainer {
     position: relative;
     max-width: 100%;
+    width: 100vw;
+    max-height: 100vw; /* keep square max */
     border: 1px solid #ccc;
-    touch-action: none; /* prevent default gestures */
+    touch-action: none;
   }
   canvas {
-    display: block;
-    max-width: 100%;
+    width: 100%;
     height: auto;
-    background: #eee;
+    display: block;
   }
   #controls {
     margin-top: 10px;
@@ -40,7 +41,7 @@
 </head>
 <body>
 
-<h1>SRPFrame - Frame Your Photo</h1>
+<h1>SRPFrame - Responsive Frame Editor</h1>
 
 <div id="canvasContainer">
   <canvas id="canvas"></canvas>
