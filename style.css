@@ -1,53 +1,67 @@
+* {
+  box-sizing: border-box;
+}
+
 body {
-  font-family: sans-serif;
-  text-align: center;
-  background: #eee;
+  font-family: Arial, sans-serif;
   margin: 0;
-  padding: 10px;
+  padding: 20px;
+  background: #f0f0f0;
+  text-align: center;
+}
+
+.container {
+  max-width: 420px;
+  margin: auto;
+  background: white;
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 0 0 10px #ccc;
 }
 
 h1 {
-  color: #333;
-  font-size: 1.5rem;
-  margin-bottom: 10px;
+  margin-bottom: 20px;
+  font-size: 1.5em;
 }
 
 input[type="file"] {
-  margin: 10px 0;
+  margin-bottom: 15px;
 }
 
 .canvas-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  overflow: hidden;
-  max-width: 100%;
+  position: relative;
+  width: 100%;
+  max-width: 400px;
+  margin: auto;
+  border: 2px solid #333;
+  border-radius: 8px;
+  background: #ddd;
+  touch-action: none; /* important for touch dragging */
 }
 
 canvas {
-  width: 100%;
-  max-width: 500px;
-  height: auto;
-  background: #fff;
-  border: 2px solid #333;
-  touch-action: none;
+  width: 100% !important;
+  height: auto !important;
+  display: block;
+  border-radius: 8px;
 }
 
 .controls {
-  margin-top: 10px;
+  margin-top: 15px;
 }
 
-.controls button {
-  margin: 5px 2px;
-  padding: 10px 12px;
+button {
+  margin: 5px;
+  padding: 10px 14px;
+  font-size: 1em;
   border: none;
-  background: #007bff;
-  color: #fff;
+  background-color: #007bff;
+  color: white;
   border-radius: 5px;
   cursor: pointer;
-  font-size: 0.9rem;
+  user-select: none;
 }
 
-.controls button:hover {
-  background: #0056b3;
+button:active {
+  background-color: #0056b3;
 }

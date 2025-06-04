@@ -1,28 +1,30 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>SRPFrame</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <title>SRPFrame - Frame Your Photo</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
+  <div class="container">
+    <h1>SRPFrame - Add Your Frame</h1>
 
-<h1>📸 SRPFrame</h1>
+    <input type="file" id="upload" accept="image/*" />
+    
+    <div class="canvas-container">
+      <canvas id="canvas"></canvas>
+    </div>
 
-<input type="file" id="upload" accept="image/*">
-<div class="canvas-container">
-  <canvas id="canvas"></canvas>
-</div>
+    <div class="controls">
+      <button id="zoomIn">Zoom In +</button>
+      <button id="zoomOut">Zoom Out -</button>
+      <button id="reset">Reset</button>
+      <button id="download">Download</button>
+      <button id="share">Share</button>
+    </div>
+  </div>
 
-<div class="controls">
-  <button id="zoomIn">Zoom In</button>
-  <button id="zoomOut">Zoom Out</button>
-  <button id="reset">Reset</button>
-  <button id="download">Download</button>
-  <button id="shareBtn">Share</button>
-</div>
-
-<script src="script.js"></script>
+  <script src="script.js"></script>
 </body>
 </html>
