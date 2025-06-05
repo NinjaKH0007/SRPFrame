@@ -1,67 +1,52 @@
-* {
-  box-sizing: border-box;
-}
-
 body {
-  font-family: Arial, sans-serif;
   margin: 0;
-  padding: 20px;
-  background: #f0f0f0;
+  font-family: 'Poppins', sans-serif;
+  background: linear-gradient(to right, #0f2027, #203a43, #2c5364);
+  color: #fff;
   text-align: center;
 }
 
-.container {
-  max-width: 420px;
-  margin: auto;
-  background: white;
-  padding: 15px;
-  border-radius: 8px;
-  box-shadow: 0 0 10px #ccc;
+header {
+  padding: 20px;
 }
 
-h1 {
-  margin-bottom: 20px;
-  font-size: 1.5em;
+.frame-container {
+  padding: 20px;
 }
 
-input[type="file"] {
-  margin-bottom: 15px;
-}
-
-.canvas-container {
-  position: relative;
-  width: 100%;
-  max-width: 400px;
-  margin: auto;
-  border: 2px solid #333;
-  border-radius: 8px;
-  background: #ddd;
-  touch-action: none; /* important for touch dragging */
-}
-
-canvas {
-  width: 100% !important;
-  height: auto !important;
-  display: block;
-  border-radius: 8px;
+#canvas {
+  border: 4px solid #fff;
+  max-width: 90%;
+  height: auto;
+  touch-action: none;
 }
 
 .controls {
-  margin-top: 15px;
+  margin-top: 20px;
 }
 
 button {
+  padding: 12px 20px;
   margin: 5px;
-  padding: 10px 14px;
-  font-size: 1em;
   border: none;
-  background-color: #007bff;
-  color: white;
-  border-radius: 5px;
+  border-radius: 8px;
+  background: #3498db;
+  color: #fff;
+  font-size: 14px;
   cursor: pointer;
-  user-select: none;
 }
 
-button:active {
-  background-color: #0056b3;
+button:hover {
+  background: #2980b9;
+}
+
+.stats {
+  margin-top: 20px;
+  font-size: 16px;
+}
+
+footer {
+  margin: 20px 0;
+  font-size: 14px;
+  opacity: 0.6;
 }
