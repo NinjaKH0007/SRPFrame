@@ -1,146 +1,134 @@
-<!DOCTYPE html>
-<html lang="km">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ខ្ញុំគាំទ្ររាជរដ្ឋាភិបាលកម្ពុជាក្នុងការដោះបញ្ហាព្រំដែន</title>
-  <style>
-    body { margin: 0; background: #f5f5f5; font-family: sans-serif; text-align: center; }
-    canvas {
-      max-width: 90%;
-      height: auto;
-      border: 8px solid #f7f7f7;
-      border-radius: 20px;
-      box-shadow: 0 0 20px rgba(0,0,0,0.3);
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+
+<script>
+  // Firebase config
+  const firebaseConfig = {
+    apiKey: "AIzaSyAIIfwK6Esa1f59Sd6GspYzrZK3WqB3hiI",
+    authDomain: "counting-be8f3.firebaseapp.com",
+    databaseURL: "https://counting-be8f3-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "counting-be8f3",
+    storageBucket: "counting-be8f3.appspot.com",
+    messagingSenderId: "109310986222",
+    appId: "1:109310986222:web:9fe0bfc5f982b2530a30ff"
+  };
+
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
+
+  const countRef = db.ref('count');
+
+  countRef.on('value', (snapshot) => {
+    document.getElementById('count').innerText = `Downloads & Shares: ${snapshot.val() || 0}`;
+  });
+
+  const canvas = document.getElementById('canvas');
+  const ctx = canvas.getContext('2d');
+  let uploadedImg = null;
+  let scale = 1, posX = 0, posY = 0;
+
+  const frame = new Image();
+  frame.src = 'frame.png';
+
+  frame.onload = draw;
+
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    if (uploadedImg) {
+      const w = uploadedImg.width * scale;
+      const h = uploadedImg.height * scale;
+      ctx.drawImage(uploadedImg, posX, posY, w, h);
     }
-    .controls {
-      margin-top: 20px;
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 16px;
+    ctx.drawImage(frame, 0, 0, canvas.width, canvas.height);
+  }
+
+  document.getElementById('upload').onchange = function(e) {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        uploadedImg = new Image();
+        uploadedImg.onload = draw;
+        uploadedImg.src = evt.target.result;
+      };
+      reader.readAsDataURL(file);
     }
-    button {
-      padding: 12px 18px;
-      border: none;
-      border-radius: 10px;
-      font-size: 16px;
-      cursor: pointer;
-      background: #1e88e5;
-      color: #fff;
+  }
+
+  function zoomIn() { scale *= 1.1; draw(); }
+  function zoomOut() { scale /= 1.1; draw(); }
+  function resetCanvas() { scale = 1; posX = 0; posY = 0; draw(); }
+
+  // --- Drag support for mouse and touch ---
+
+  let isDragging = false;
+  let dragStartX = 0;
+  let dragStartY = 0;
+
+  canvas.addEventListener('mousedown', (e) => {
+    isDragging = true;
+    dragStartX = e.clientX - posX;
+    dragStartY = e.clientY - posY;
+  });
+
+  canvas.addEventListener('mousemove', (e) => {
+    if (!isDragging) return;
+    posX = e.clientX - dragStartX;
+    posY = e.clientY - dragStartY;
+    draw();
+  });
+
+  canvas.addEventListener('mouseup', () => {
+    isDragging = false;
+  });
+
+  canvas.addEventListener('mouseleave', () => {
+    isDragging = false;
+  });
+
+  // Touch events
+  canvas.addEventListener('touchstart', (e) => {
+    if (e.touches.length === 1) {
+      isDragging = true;
+      const touch = e.touches[0];
+      dragStartX = touch.clientX - posX;
+      dragStartY = touch.clientY - posY;
     }
-    button:hover { background: #1565c0; }
-    #count { margin-top: 20px; font-size: 18px; }
-    .frame-light {
-      animation: glow 1.5s infinite alternate;
+  }, { passive: false });
+
+  canvas.addEventListener('touchmove', (e) => {
+    if (!isDragging) return;
+    if (e.touches.length === 1) {
+      e.preventDefault(); // Prevent scrolling
+      const touch = e.touches[0];
+      posX = touch.clientX - dragStartX;
+      posY = touch.clientY - dragStartY;
+      draw();
     }
-    @keyframes glow {
-      from { box-shadow: 0 0 20px rgba(0,0,0,0.4); }
-      to   { box-shadow: 0 0 40px rgba(255, 215, 0, 0.9); }
-    }
-  </style>
-</head>
-<body>
+  }, { passive: false });
 
-  <h2>ខ្ញុំគាំទ្ររាជរដ្ឋាភិបាលកម្ពុជាក្នុងការដោះបញ្ហាព្រំដែន</h2>
-  <input type="file" id="upload" accept="image/*">
-  <br><br>
+  canvas.addEventListener('touchend', () => {
+    isDragging = false;
+  });
 
-  <canvas id="canvas" width="720" height="720" class="frame-light"></canvas>
+  // Download and share functions remain unchanged
+  function downloadImage() {
+    const link = document.createElement('a');
+    link.download = 'photo.png';
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+    countRef.transaction(n => (n || 0) + 1);
+  }
 
-  <div class="controls">
-    <button onclick="zoomIn()">Zoom In</button>
-    <button onclick="zoomOut()">Zoom Out</button>
-    <button onclick="resetCanvas()">Reset</button>
-    <button onclick="downloadImage()">Download</button>
-    <button onclick="shareImage()">Share</button>
-  </div>
-
-  <div id="count"></div>
-
-  <!-- Firebase -->
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
-
-  <script>
-    // Firebase config
-    const firebaseConfig = {
-      apiKey: "AIzaSyAIIfwK6Esa1f59Sd6GspYzrZK3WqB3hiI",
-      authDomain: "counting-be8f3.firebaseapp.com",
-      databaseURL: "https://counting-be8f3-default-rtdb.asia-southeast1.firebasedatabase.app",
-      projectId: "counting-be8f3",
-      storageBucket: "counting-be8f3.appspot.com",
-      messagingSenderId: "109310986222",
-      appId: "1:109310986222:web:9fe0bfc5f982b2530a30ff"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
-    const counterRef = db.ref('srpframe_total_count');  // fixed key name to prevent reset
-
-    counterRef.on('value', (snapshot) => {
-      document.getElementById('count').innerText = `Downloads & Shares: ${snapshot.val() || 0}`;
+  function shareImage() {
+    canvas.toBlob(blob => {
+      const file = new File([blob], 'photo.png', { type: 'image/png' });
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        navigator.share({ files: [file], title: 'Photo', text: 'Check this out!' });
+      } else {
+        alert('Sharing not supported on this browser.');
+      }
+      countRef.transaction(n => (n || 0) + 1);
     });
-
-    const canvas = document.getElementById('canvas');
-    const ctx = canvas.getContext('2d');
-    let uploadedImg = null;
-    let scale = 1, posX = 0, posY = 0;
-
-    const frame = new Image();
-    frame.src = 'frame.png';
-    frame.onload = draw;
-
-    function draw() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      if (uploadedImg) {
-        const w = uploadedImg.width * scale;
-        const h = uploadedImg.height * scale;
-        ctx.drawImage(uploadedImg, posX, posY, w, h);
-      }
-      ctx.drawImage(frame, 0, 0, canvas.width, canvas.height);
-    }
-
-    document.getElementById('upload').onchange = function(e) {
-      const file = e.target.files[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = function(evt) {
-          uploadedImg = new Image();
-          uploadedImg.onload = draw;
-          uploadedImg.src = evt.target.result;
-        };
-        reader.readAsDataURL(file);
-      }
-    }
-
-    function zoomIn() { scale *= 1.1; draw(); }
-    function zoomOut() { scale /= 1.1; draw(); }
-    function resetCanvas() { scale = 1; posX = 0; posY = 0; draw(); }
-
-    function downloadImage() {
-      const link = document.createElement('a');
-      link.download = 'photo.png';
-      link.href = canvas.toDataURL('image/png');
-      link.click();
-      counterRef.transaction(n => (n || 0) + 1);
-    }
-
-    function shareImage() {
-      canvas.toBlob(blob => {
-        const file = new File([blob], 'photo.png', { type: 'image/png' });
-        if (navigator.canShare && navigator.canShare({ files: [file] })) {
-          navigator.share({
-            files: [file],
-            title: 'Photo',
-            text: 'Check this out!'
-          });
-          counterRef.transaction(n => (n || 0) + 1);
-        } else {
-          alert('សូមប្រើ Browser ទំនើប ដើម្បីចែករំលែក។');
-        }
-      });
-    }
-  </script>
-
-</body>
-</html>
+  }
+</script>
