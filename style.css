@@ -1,52 +1,65 @@
 body {
   margin: 0;
-  font-family: 'Poppins', sans-serif;
-  background: linear-gradient(to right, #0f2027, #203a43, #2c5364);
-  color: #fff;
+  font-family: 'Segoe UI', sans-serif;
+  background: #f4f4f9;
   text-align: center;
 }
 
-header {
+.container {
   padding: 20px;
 }
 
-.frame-container {
-  padding: 20px;
+h1 {
+  margin-bottom: 10px;
+  font-size: 2rem;
+  color: #333;
 }
 
-#canvas {
-  border: 4px solid #fff;
-  max-width: 90%;
+.canvas-wrapper {
+  width: 100%;
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+canvas {
+  width: 100%;
   height: auto;
-  touch-action: none;
+  border-radius: 12px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.1);
 }
 
-.controls {
-  margin-top: 20px;
+input[type="file"] {
+  margin: 15px 0;
 }
 
-button {
-  padding: 12px 20px;
+.controls button {
+  padding: 10px 15px;
   margin: 5px;
+  font-size: 1.1rem;
   border: none;
   border-radius: 8px;
-  background: #3498db;
+  background: #333;
   color: #fff;
-  font-size: 14px;
   cursor: pointer;
+  transition: 0.2s;
 }
 
-button:hover {
-  background: #2980b9;
+.controls button:hover {
+  background: #555;
 }
 
 .stats {
   margin-top: 20px;
-  font-size: 16px;
+  font-size: 1rem;
+  color: #333;
 }
 
-footer {
-  margin: 20px 0;
-  font-size: 14px;
-  opacity: 0.6;
+@media (max-width: 480px) {
+  h1 {
+    font-size: 1.5rem;
+  }
+  .controls button {
+    font-size: 1rem;
+    padding: 8px 10px;
+  }
 }

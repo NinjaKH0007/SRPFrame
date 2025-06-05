@@ -1,137 +1,129 @@
-let canvas = document.getElementById('canvas');
-let ctx = canvas.getContext('2d');
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
+const upload = document.getElementById("upload");
+const frame = new Image();
+frame.src = "frame.png";
+
 let img = new Image();
-let frame = new Image();
-frame.src = 'frame.png';
-let scale = 1;
-let posX = 0, posY = 0;
-let isDragging = false;
-let startX, startY;
-let downloadCount = 0;
-let shareCount = 0;
+let imgX = 0, imgY = 0, scale = 1;
+let dragging = false, startX, startY;
 
-// Adjust canvas size
-function resizeCanvas() {
-  canvas.width = Math.min(window.innerWidth * 0.9, 600);
-  canvas.height = canvas.width;
-  draw();
-}
-
-window.addEventListener('resize', resizeCanvas);
-
-document.getElementById('upload').onchange = function(e) {
-  let reader = new FileReader();
-  reader.onload = function(event) {
-    img.src = event.target.result;
-    scale = 1;
-    posX = 0;
-    posY = 0;
-    img.onload = () => {
-      resizeCanvas();
-    };
-  };
-  reader.readAsDataURL(e.target.files[0]);
+// Initial draw
+frame.onload = () => {
+  ctx.drawImage(frame, 0, 0, 1080, 1080);
 };
 
-function draw() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+// Upload image
+upload.addEventListener("change", (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    img.src = reader.result;
+    img.onload = () => {
+      imgX = 0;
+      imgY = 0;
+      scale = 1;
+      drawCanvas();
+    };
+  };
+  reader.readAsDataURL(file);
+});
+
+// Draw everything
+function drawCanvas() {
+  ctx.clearRect(0, 0, 1080, 1080);
   if (img.src) {
-    let imgW = img.width * scale;
-    let imgH = img.height * scale;
-    ctx.drawImage(img, posX, posY, imgW, imgH);
+    const imgW = img.width * scale;
+    const imgH = img.height * scale;
+    ctx.drawImage(img, imgX, imgY, imgW, imgH);
   }
-  ctx.drawImage(frame, 0, 0, canvas.width, canvas.height);
+  ctx.drawImage(frame, 0, 0, 1080, 1080);
 }
 
-// Zoom In / Out / Reset
+// Dragging
+canvas.addEventListener("mousedown", startDrag);
+canvas.addEventListener("mousemove", drag);
+canvas.addEventListener("mouseup", stopDrag);
+canvas.addEventListener("touchstart", startDrag);
+canvas.addEventListener("touchmove", drag);
+canvas.addEventListener("touchend", stopDrag);
+
+function startDrag(e) {
+  dragging = true;
+  startX = e.clientX || e.touches[0].clientX;
+  startY = e.clientY || e.touches[0].clientY;
+}
+
+function drag(e) {
+  if (!dragging) return;
+  const x = e.clientX || e.touches[0].clientX;
+  const y = e.clientY || e.touches[0].clientY;
+  imgX += x - startX;
+  imgY += y - startY;
+  startX = x;
+  startY = y;
+  drawCanvas();
+}
+
+function stopDrag() {
+  dragging = false;
+}
+
+// Zoom functions
 function zoomIn() {
-  scale += 0.1;
-  draw();
+  scale *= 1.1;
+  drawCanvas();
 }
 
 function zoomOut() {
-  scale = Math.max(0.2, scale - 0.1);
-  draw();
+  scale /= 1.1;
+  drawCanvas();
 }
 
-function reset() {
+function resetImage() {
+  imgX = 0;
+  imgY = 0;
   scale = 1;
-  posX = 0;
-  posY = 0;
-  draw();
+  drawCanvas();
 }
 
-// Download Image
-function download() {
-  let link = document.createElement('a');
-  link.download = 'SRPFrame.png';
-  link.href = canvas.toDataURL('image/png', 1.0);
+// Download image
+function downloadImage() {
+  const link = document.createElement("a");
+  link.download = "srpframe.png";
+  link.href = canvas.toDataURL("image/png");
   link.click();
-  downloadCount++;
-  updateCounters();
+
+  let count = parseInt(localStorage.getItem("downloads")) || 0;
+  count++;
+  localStorage.setItem("downloads", count);
+  document.getElementById("downloadCount").innerText = count;
 }
 
-// Share Image
+// Share image
 function shareImage() {
-  canvas.toBlob(blob => {
-    let file = new File([blob], 'SRPFrame.png', {type: 'image/png'});
-    if (navigator.canShare && navigator.canShare({files: [file]})) {
+  canvas.toBlob((blob) => {
+    const file = new File([blob], "srpframe.png", { type: "image/png" });
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
       navigator.share({
-        title: 'SRPFrame',
         files: [file],
+        title: "My SRPFrame Photo",
+        text: "Check out my frame image!"
       }).then(() => {
-        shareCount++;
-        updateCounters();
-      });
+        let count = parseInt(localStorage.getItem("shares")) || 0;
+        count++;
+        localStorage.setItem("shares", count);
+        document.getElementById("shareCount").innerText = count;
+      }).catch(console.error);
     } else {
-      alert('Sharing not supported on this browser.');
+      alert("Sharing not supported on this device/browser.");
     }
-  }, 'image/png', 1.0);
+  }, "image/png");
 }
 
-// Drag / Touch Move
-canvas.addEventListener('mousedown', e => {
-  isDragging = true;
-  startX = e.offsetX;
-  startY = e.offsetY;
-});
-
-canvas.addEventListener('mousemove', e => {
-  if (isDragging) {
-    posX += e.offsetX - startX;
-    posY += e.offsetY - startY;
-    startX = e.offsetX;
-    startY = e.offsetY;
-    draw();
-  }
-});
-
-canvas.addEventListener('mouseup', () => isDragging = false);
-canvas.addEventListener('mouseout', () => isDragging = false);
-
-canvas.addEventListener('touchstart', e => {
-  isDragging = true;
-  startX = e.touches[0].clientX - canvas.offsetLeft;
-  startY = e.touches[0].clientY - canvas.offsetTop;
-}, false);
-
-canvas.addEventListener('touchmove', e => {
-  if (isDragging) {
-    let moveX = e.touches[0].clientX - canvas.offsetLeft;
-    let moveY = e.touches[0].clientY - canvas.offsetTop;
-    posX += moveX - startX;
-    posY += moveY - startY;
-    startX = moveX;
-    startY = moveY;
-    draw();
-  }
-}, false);
-
-canvas.addEventListener('touchend', () => isDragging = false);
-
-function updateCounters() {
-  document.getElementById('downloadCount').innerText = downloadCount;
-  document.getElementById('shareCount').innerText = shareCount;
-}
-
-frame.onload = () => resizeCanvas();
+// Load saved counts
+window.onload = () => {
+  document.getElementById("downloadCount").innerText = localStorage.getItem("downloads") || 0;
+  document.getElementById("shareCount").innerText = localStorage.getItem("shares") || 0;
+};
