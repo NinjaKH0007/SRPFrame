@@ -1,30 +1,33 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>SRPFrame</title>
   <link rel="stylesheet" href="style.css">
+  <script type="module" src="firebase-config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 </head>
 <body>
   <div class="container">
-    <h1>🎉 SRPFrame 🎉</h1>
-    <div class="canvas-wrapper">
-      <canvas id="canvas" width="1080" height="1080"></canvas>
+    <h1>SRPFrame Photo Creator</h1>
+
+    <div class="canvas-container">
+      <canvas id="canvas"></canvas>
     </div>
-    <input type="file" id="upload" accept="image/*">
+
+    <input type="file" id="imageLoader" accept="image/*"/>
     <div class="controls">
-      <button onclick="zoomIn()">🔍+</button>
-      <button onclick="zoomOut()">🔍-</button>
-      <button onclick="resetImage()">🔄 Reset</button>
-      <button onclick="downloadImage()">⬇️ Download</button>
-      <button onclick="shareImage()">📤 Share</button>
+      <button id="zoomIn">+</button>
+      <button id="zoomOut">-</button>
+      <button id="reset">Reset</button>
+      <button id="downloadBtn">Download</button>
+      <button id="shareBtn">Share</button>
     </div>
-    <div class="stats">
-      <p>📥 Downloads: <span id="downloadCount">0</span></p>
-      <p>📤 Shares: <span id="shareCount">0</span></p>
-    </div>
+
+    <p>Downloads: <span id="downloadCount">0</span> | Shares: <span id="shareCount">0</span></p>
   </div>
-  <script src="script.js"></script>
+
+  <script src="script.js" type="module"></script>
 </body>
 </html>

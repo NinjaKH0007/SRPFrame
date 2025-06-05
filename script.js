@@ -1,129 +1,132 @@
-const canvas = document.getElementById("canvas");
-const ctx = canvas.getContext("2d");
-const upload = document.getElementById("upload");
-const frame = new Image();
-frame.src = "frame.png";
+import { db, ref, get, increment, update, onValue } from "./firebase-config.js";
+
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+const imageLoader = document.getElementById('imageLoader');
 
 let img = new Image();
-let imgX = 0, imgY = 0, scale = 1;
-let dragging = false, startX, startY;
+let frame = new Image();
+let scale = 1;
+let posX = 0;
+let posY = 0;
+let dragging = false;
+let startX, startY;
 
-// Initial draw
-frame.onload = () => {
-  ctx.drawImage(frame, 0, 0, 1080, 1080);
-};
+canvas.width = 1080;
+canvas.height = 1080;
 
-// Upload image
-upload.addEventListener("change", (e) => {
-  const file = e.target.files[0];
-  if (!file) return;
+// Load frame
+frame.src = 'frame.png';
+frame.onload = () => draw();
+
+imageLoader.addEventListener('change', e => {
   const reader = new FileReader();
-  reader.onload = () => {
-    img.src = reader.result;
+  reader.onload = event => {
+    img = new Image();
     img.onload = () => {
-      imgX = 0;
-      imgY = 0;
       scale = 1;
-      drawCanvas();
-    };
-  };
-  reader.readAsDataURL(file);
+      posX = 0;
+      posY = 0;
+      draw();
+    }
+    img.src = event.target.result;
+  }
+  reader.readAsDataURL(e.target.files[0]);
 });
 
-// Draw everything
-function drawCanvas() {
-  ctx.clearRect(0, 0, 1080, 1080);
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
   if (img.src) {
-    const imgW = img.width * scale;
-    const imgH = img.height * scale;
-    ctx.drawImage(img, imgX, imgY, imgW, imgH);
+    const iw = img.width * scale;
+    const ih = img.height * scale;
+    ctx.drawImage(img, posX, posY, iw, ih);
   }
-  ctx.drawImage(frame, 0, 0, 1080, 1080);
+  ctx.drawImage(frame, 0, 0, canvas.width, canvas.height);
 }
 
-// Dragging
-canvas.addEventListener("mousedown", startDrag);
-canvas.addEventListener("mousemove", drag);
-canvas.addEventListener("mouseup", stopDrag);
-canvas.addEventListener("touchstart", startDrag);
-canvas.addEventListener("touchmove", drag);
-canvas.addEventListener("touchend", stopDrag);
-
-function startDrag(e) {
+canvas.addEventListener('mousedown', e => {
   dragging = true;
-  startX = e.clientX || e.touches[0].clientX;
-  startY = e.clientY || e.touches[0].clientY;
+  startX = e.offsetX - posX;
+  startY = e.offsetY - posY;
+});
+
+canvas.addEventListener('mouseup', () => dragging = false);
+canvas.addEventListener('mouseleave', () => dragging = false);
+
+canvas.addEventListener('mousemove', e => {
+  if (dragging) {
+    posX = e.offsetX - startX;
+    posY = e.offsetY - startY;
+    draw();
+  }
+});
+
+canvas.addEventListener('touchstart', e => {
+  e.preventDefault();
+  dragging = true;
+  const rect = canvas.getBoundingClientRect();
+  startX = e.touches[0].clientX - rect.left - posX;
+  startY = e.touches[0].clientY - rect.top - posY;
+});
+
+canvas.addEventListener('touchend', () => dragging = false);
+canvas.addEventListener('touchmove', e => {
+  e.preventDefault();
+  if (dragging) {
+    const rect = canvas.getBoundingClientRect();
+    posX = e.touches[0].clientX - rect.left - startX;
+    posY = e.touches[0].clientY - rect.top - startY;
+    draw();
+  }
+});
+
+document.getElementById('zoomIn').onclick = () => { scale *= 1.1; draw(); }
+document.getElementById('zoomOut').onclick = () => { scale *= 0.9; draw(); }
+document.getElementById('reset').onclick = () => {
+  scale = 1; posX = 0; posY = 0; draw();
 }
 
-function drag(e) {
-  if (!dragging) return;
-  const x = e.clientX || e.touches[0].clientX;
-  const y = e.clientY || e.touches[0].clientY;
-  imgX += x - startX;
-  imgY += y - startY;
-  startX = x;
-  startY = y;
-  drawCanvas();
-}
-
-function stopDrag() {
-  dragging = false;
-}
-
-// Zoom functions
-function zoomIn() {
-  scale *= 1.1;
-  drawCanvas();
-}
-
-function zoomOut() {
-  scale /= 1.1;
-  drawCanvas();
-}
-
-function resetImage() {
-  imgX = 0;
-  imgY = 0;
-  scale = 1;
-  drawCanvas();
-}
-
-// Download image
-function downloadImage() {
-  const link = document.createElement("a");
-  link.download = "srpframe.png";
-  link.href = canvas.toDataURL("image/png");
-  link.click();
-
-  let count = parseInt(localStorage.getItem("downloads")) || 0;
-  count++;
-  localStorage.setItem("downloads", count);
-  document.getElementById("downloadCount").innerText = count;
-}
-
-// Share image
-function shareImage() {
-  canvas.toBlob((blob) => {
-    const file = new File([blob], "srpframe.png", { type: "image/png" });
-    if (navigator.canShare && navigator.canShare({ files: [file] })) {
-      navigator.share({
-        files: [file],
-        title: "My SRPFrame Photo",
-        text: "Check out my frame image!"
-      }).then(() => {
-        let count = parseInt(localStorage.getItem("shares")) || 0;
-        count++;
-        localStorage.setItem("shares", count);
-        document.getElementById("shareCount").innerText = count;
-      }).catch(console.error);
-    } else {
-      alert("Sharing not supported on this device/browser.");
-    }
-  }, "image/png");
-}
-
-// Load saved counts
-window.onload = () => {
-  document.getElementById("downloadCount").innerText = localStorage.getItem("downloads") || 0;
-  document.getElementById("shareCount").innerText = localStorage.getItem("shares") || 0;
+document.getElementById('downloadBtn').onclick = () => {
+  canvas.toBlob(blob => {
+    const link = document.createElement('a');
+    link.download = 'SRPFrame.png';
+    link.href = URL.createObjectURL(blob);
+    link.click();
+    incrementCounter('downloads');
+  }, 'image/png', 1.0);
 };
+
+document.getElementById('shareBtn').onclick = async () => {
+  canvas.toBlob(async blob => {
+    const file = new File([blob], "SRPFrame.png", { type: "image/png" });
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      await navigator.share({
+        files: [file],
+        title: 'SRPFrame',
+        text: 'Check out my frame!'
+      });
+      incrementCounter('shares');
+    } else {
+      alert("Your device doesn't support native sharing.");
+    }
+  }, 'image/png', 1.0);
+};
+
+// Fetch and display counters
+function setupCounters() {
+  onValue(ref(db, 'counts/'), snapshot => {
+    const data = snapshot.val() || {};
+    document.getElementById('downloadCount').textContent = data.downloads || 0;
+    document.getElementById('shareCount').textContent = data.shares || 0;
+  });
+}
+setupCounters();
+
+// Increment a counter
+function incrementCounter(counter) {
+  const counterRef = ref(db, 'counts/' + counter);
+  get(counterRef).then(snapshot => {
+    const value = snapshot.exists() ? snapshot.val() + 1 : 1;
+    update(ref(db, 'counts/'), { [counter]: value });
+  });
+}
