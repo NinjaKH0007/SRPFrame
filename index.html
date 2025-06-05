@@ -1,33 +1,34 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>SRPFrame</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ខ្ញុំគាំទ្ររាជរដ្ឋាភិបាលកម្ពុជាក្នុងការដោះបញ្ហាព្រំដែន</title>
   <link rel="stylesheet" href="style.css">
-  <script type="module" src="firebase-config.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js"></script>
 </head>
 <body>
   <div class="container">
-    <h1>SRPFrame Photo Creator</h1>
+    <h1>ខ្ញុំគាំទ្ររាជរដ្ឋាភិបាលកម្ពុជាក្នុងការដោះបញ្ហាព្រំដែន</h1>
 
-    <div class="canvas-container">
-      <canvas id="canvas"></canvas>
+    <input type="file" id="upload" accept="image/*">
+    <canvas id="canvas"></canvas>
+
+    <div class="buttons">
+      <button onclick="zoomIn()">➕ Zoom In</button>
+      <button onclick="zoomOut()">➖ Zoom Out</button>
+      <button onclick="reset()">🔄 Reset</button>
+      <button onclick="downloadImage()">⬇️ Download</button>
+      <button onclick="shareImage()">📤 Share</button>
     </div>
 
-    <input type="file" id="imageLoader" accept="image/*"/>
-    <div class="controls">
-      <button id="zoomIn">+</button>
-      <button id="zoomOut">-</button>
-      <button id="reset">Reset</button>
-      <button id="downloadBtn">Download</button>
-      <button id="shareBtn">Share</button>
+    <div class="counts">
+      Downloads: <span id="downloadCount">0</span> |
+      Shares: <span id="shareCount">0</span>
     </div>
-
-    <p>Downloads: <span id="downloadCount">0</span> | Shares: <span id="shareCount">0</span></p>
   </div>
 
-  <script src="script.js" type="module"></script>
+  <script src="script.js"></script>
 </body>
 </html>
