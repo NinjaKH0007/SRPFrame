@@ -7,47 +7,49 @@
   <style>
     body {
       margin: 0;
-      background: #f5f5f5;
+      background: #f0f0f0;
       font-family: sans-serif;
       text-align: center;
     }
 
+    h2 {
+      font-size: 20px;
+      margin: 12px;
+    }
+
     canvas {
-      max-width: 100%;
+      width: 95vw;
+      max-width: 400px;
       height: auto;
-      border: 4px solid #FFD700; /* smaller golden border */
+      max-height: 75vh;
+      border: 2px solid #FFD700;
       border-radius: 20px;
-      box-shadow: 0 0 20px #FFD700; /* golden glow */
+      box-shadow: 0 0 16px #FFD700;
       animation: glow 3s ease-in-out infinite;
-      max-height: 90vh;
     }
 
     @keyframes glow {
-      0%, 100% {
-        box-shadow: 0 0 10px 2px #FFD700;
-      }
-      50% {
-        box-shadow: 0 0 20px 5px #FFC107;
-      }
+      0%, 100% { box-shadow: 0 0 10px 1px #FFD700; }
+      50%      { box-shadow: 0 0 30px 9px #FFC107; }
     }
 
     .controls {
-      margin-top: 20px;
+      margin-top: 15px;
       display: flex;
       flex-wrap: wrap;
       justify-content: center;
-      gap: 16px; /* bigger spacing */
+      gap: 12px;
     }
 
     button {
-      padding: 10px 16px;
+      padding: 8px 14px;
       border: none;
-      border-radius: 10px;
-      font-size: 16px;
+      border-radius: 8px;
+      font-size: 14px;
       cursor: pointer;
       background: #1e88e5;
       color: #fff;
-      min-width: 100px;
+      min-width: 90px;
     }
 
     button:hover {
@@ -55,9 +57,14 @@
     }
 
     #count {
-      margin-top: 15px;
-      font-size: 18px;
+      margin: 12px 0;
+      font-size: 16px;
     }
+
+    input[type="file"] {
+      margin-top: 12px;
+    }
+
   </style>
 </head>
 <body>
@@ -96,7 +103,7 @@
     const db = firebase.database();
     const countRef = db.ref('count');
 
-    // Initialize counter safely without overwriting existing value
+    // Safe counter init
     countRef.once('value').then(snapshot => {
       if (snapshot.exists()) {
         updateCountDisplay(snapshot.val());
@@ -106,7 +113,6 @@
       }
     });
 
-    // Listen for realtime updates to count
     countRef.on('value', (snapshot) => {
       if(snapshot.exists()){
         updateCountDisplay(snapshot.val());
@@ -124,7 +130,6 @@
 
     const frame = new Image();
     frame.src = 'frame.png';
-
     frame.onload = draw;
 
     function draw() {
@@ -193,7 +198,7 @@
       });
     }
 
-    // Drag to move image (mouse and touch)
+    // Drag to move image
     let isDragging = false;
     let dragStartX = 0;
     let dragStartY = 0;
@@ -204,14 +209,8 @@
       dragStartY = e.offsetY - posY;
     });
 
-    canvas.addEventListener('mouseup', e => {
-      isDragging = false;
-    });
-
-    canvas.addEventListener('mouseleave', e => {
-      isDragging = false;
-    });
-
+    canvas.addEventListener('mouseup', () => isDragging = false);
+    canvas.addEventListener('mouseleave', () => isDragging = false);
     canvas.addEventListener('mousemove', e => {
       if (isDragging) {
         posX = e.offsetX - dragStartX;
@@ -220,7 +219,7 @@
       }
     });
 
-    // Touch events for mobile drag
+    // Touch drag
     canvas.addEventListener('touchstart', e => {
       if(e.touches.length === 1){
         const touch = e.touches[0];
@@ -241,10 +240,8 @@
       }
     });
 
-    canvas.addEventListener('touchend', e => {
-      isDragging = false;
-    });
-  </script>
+    canvas.addEventListener('touchend', () => isDragging = false);
 
+  </script>
 </body>
 </html>
