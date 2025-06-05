@@ -1,34 +1,38 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="km">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>ខ្ញុំគាំទ្ររាជរដ្ឋាភិបាលកម្ពុជាក្នុងការដោះបញ្ហាព្រំដែន</title>
-  <link rel="stylesheet" href="style.css">
-  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js"></script>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+<title>ខ្ញុំគាំទ្ររាជរដ្ឋាភិបាលកម្ពុជាក្នុងការដោះបញ្ហាព្រំដែន</title>
+<link rel="stylesheet" href="style.css" />
+<script defer src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script defer src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+<script defer src="script.js"></script>
 </head>
 <body>
-  <div class="container">
-    <h1>ខ្ញុំគាំទ្ររាជរដ្ឋាភិបាលកម្ពុជាក្នុងការដោះបញ្ហាព្រំដែន</h1>
-
-    <input type="file" id="upload" accept="image/*">
+<div class="container">
+  <h1>ខ្ញុំគាំទ្ររាជរដ្ឋាភិបាលកម្ពុជាក្នុងការដោះបញ្ហាព្រំដែន</h1>
+  
+  <div class="frame-wrapper">
     <canvas id="canvas"></canvas>
-
-    <div class="buttons">
-      <button onclick="zoomIn()">➕ Zoom In</button>
-      <button onclick="zoomOut()">➖ Zoom Out</button>
-      <button onclick="reset()">🔄 Reset</button>
-      <button onclick="downloadImage()">⬇️ Download</button>
-      <button onclick="shareImage()">📤 Share</button>
-    </div>
-
-    <div class="counts">
-      Downloads: <span id="downloadCount">0</span> |
-      Shares: <span id="shareCount">0</span>
-    </div>
+    <!-- Light animation ring -->
+    <div class="light-ring"></div>
   </div>
 
-  <script src="script.js"></script>
+  <input type="file" id="upload" accept="image/*" />
+  
+  <div class="controls">
+    <button id="zoomIn">Zoom In +</button>
+    <button id="zoomOut">Zoom Out -</button>
+    <button id="reset">Reset</button>
+    <button id="download">Download</button>
+    <button id="share">Share</button>
+  </div>
+
+  <div class="counts">
+    <span>Downloads: <span id="downloadCount">0</span></span> |
+    <span>Shares: <span id="shareCount">0</span></span>
+  </div>
+</div>
 </body>
 </html>
