@@ -2,94 +2,69 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>ខាងមាស៉ុមសំនេនមានព៉ោរមិនបងនាកសាងនាត់</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ខ្ញុំគាំទ្ររាជរដ្ឋាភិបាលកម្ពុជាក្នុងការដោះបញ្ហាព្រំដែន</title>
   <style>
     body {
-      margin: 0; 
-      background: #f0f4f8;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      background: #f5f5f5;
+      font-family: sans-serif;
       text-align: center;
-      color: #222;
-      user-select: none;
-      -webkit-user-select: none;
-      -webkit-touch-callout: none;
     }
-    h2 {
-      margin: 20px 10px 10px;
-      font-weight: 600;
-    }
-    #upload {
-      margin: 12px 0 18px;
-    }
-    #canvas {
-      max-width: 90vw;
-      width: 100%;
-      max-height: 90vw;
+
+    canvas {
+      max-width: 100%;
       height: auto;
+      border: 4px solid #FFD700; /* smaller golden border */
       border-radius: 20px;
-      box-shadow:
-        0 0 15px rgba(30, 136, 229, 0.7),
-        0 0 30px rgba(30, 136, 229, 0.4);
-      cursor: grab;
-      touch-action: none;
-      background: white;
-      display: block;
-      margin: 0 auto;
-      border: 8px solid #1e88e5;
-      animation: glow 2.5s infinite alternate;
+      box-shadow: 0 0 20px #FFD700; /* golden glow */
+      animation: glow 3s ease-in-out infinite;
+      max-height: 90vh;
     }
+
     @keyframes glow {
-      0% {
-        box-shadow:
-          0 0 10px rgba(30,136,229,0.5),
-          0 0 20px rgba(30,136,229,0.3);
+      0%, 100% {
+        box-shadow: 0 0 10px 2px #FFD700;
       }
-      100% {
-        box-shadow:
-          0 0 25px rgba(30,136,229,1),
-          0 0 50px rgba(30,136,229,0.6);
+      50% {
+        box-shadow: 0 0 20px 5px #FFC107;
       }
     }
+
     .controls {
-      margin: 25px auto 30px;
+      margin-top: 20px;
       display: flex;
       flex-wrap: wrap;
       justify-content: center;
-      gap: 16px;
-      max-width: 480px;
-      padding: 0 10px;
+      gap: 16px; /* bigger spacing */
     }
+
     button {
-      background-color: #1e88e5;
+      padding: 10px 16px;
       border: none;
-      border-radius: 12px;
-      color: white;
-      cursor: pointer;
+      border-radius: 10px;
       font-size: 16px;
-      font-weight: 600;
-      padding: 12px 22px;
-      transition: background-color 0.3s ease;
-      flex: 1 1 120px;
-      min-width: 120px;
-      user-select: none;
+      cursor: pointer;
+      background: #1e88e5;
+      color: #fff;
+      min-width: 100px;
     }
-    button:hover, button:focus {
-      background-color: #1565c0;
-      outline: none;
+
+    button:hover {
+      background: #1565c0;
     }
+
     #count {
+      margin-top: 15px;
       font-size: 18px;
-      margin-bottom: 40px;
-      font-weight: 600;
-      color: #444;
     }
   </style>
 </head>
 <body>
 
-  <h2>ខាងមាស៉ុមសំនេនមានព៉ោរមិនបងនាកសាងនាត់</h2>
+  <h2>ខ្ញុំគាំទ្ររាជរដ្ឋាភិបាលកម្ពុជាក្នុងការដោះបញ្ហាព្រំដែន</h2>
   <input type="file" id="upload" accept="image/*" />
+  <br /><br />
   <canvas id="canvas" width="1080" height="1080"></canvas>
 
   <div class="controls">
@@ -121,31 +96,40 @@
     const db = firebase.database();
     const countRef = db.ref('count');
 
-    // Update count on page
-    countRef.on('value', snapshot => {
-      const count = snapshot.val() || 0;
-      document.getElementById('count').innerText = `Downloads & Shares: ${count}`;
+    // Initialize counter safely without overwriting existing value
+    countRef.once('value').then(snapshot => {
+      if (snapshot.exists()) {
+        updateCountDisplay(snapshot.val());
+      } else {
+        countRef.set(0);
+        updateCountDisplay(0);
+      }
     });
+
+    // Listen for realtime updates to count
+    countRef.on('value', (snapshot) => {
+      if(snapshot.exists()){
+        updateCountDisplay(snapshot.val());
+      }
+    });
+
+    function updateCountDisplay(value) {
+      document.getElementById('count').innerText = `Downloads & Shares: ${value || 0}`;
+    }
 
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
-
-    // State variables
     let uploadedImg = null;
     let scale = 1, posX = 0, posY = 0;
-    let dragging = false;
-    let dragStartX = 0, dragStartY = 0;
 
     const frame = new Image();
     frame.src = 'frame.png';
 
-    frame.onload = () => {
-      draw();
-    };
+    frame.onload = draw;
 
     function draw() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      if(uploadedImg) {
+      if (uploadedImg) {
         const w = uploadedImg.width * scale;
         const h = uploadedImg.height * scale;
         ctx.drawImage(uploadedImg, posX, posY, w, h);
@@ -153,39 +137,29 @@
       ctx.drawImage(frame, 0, 0, canvas.width, canvas.height);
     }
 
-    // Upload handling
-    document.getElementById('upload').addEventListener('change', e => {
+    document.getElementById('upload').onchange = function(e) {
       const file = e.target.files[0];
-      if(file) {
+      if (file) {
         const reader = new FileReader();
         reader.onload = function(evt) {
           uploadedImg = new Image();
-          uploadedImg.onload = () => {
-            scale = Math.min(
-              canvas.width / uploadedImg.width,
-              canvas.height / uploadedImg.height,
-              1
-            );
-            // Center image
-            posX = (canvas.width - uploadedImg.width * scale) / 2;
-            posY = (canvas.height - uploadedImg.height * scale) / 2;
-            draw();
-          };
+          uploadedImg.onload = draw;
           uploadedImg.src = evt.target.result;
         };
         reader.readAsDataURL(file);
       }
-    });
+    }
 
-    // Zoom controls
     function zoomIn() {
       scale *= 1.1;
       draw();
     }
+
     function zoomOut() {
       scale /= 1.1;
       draw();
     }
+
     function resetCanvas() {
       scale = 1;
       posX = 0;
@@ -193,81 +167,82 @@
       draw();
     }
 
-    // Drag support (mouse and touch)
-    function pointerDown(e) {
-      dragging = true;
-      dragStartX = e.clientX || e.touches[0].clientX;
-      dragStartY = e.clientY || e.touches[0].clientY;
-      canvas.style.cursor = 'grabbing';
-    }
-    function pointerMove(e) {
-      if(!dragging) return;
-      e.preventDefault();
-      const clientX = e.clientX || e.touches[0].clientX;
-      const clientY = e.clientY || e.touches[0].clientY;
-      const dx = clientX - dragStartX;
-      const dy = clientY - dragStartY;
-      posX += dx;
-      posY += dy;
-      dragStartX = clientX;
-      dragStartY = clientY;
-      draw();
-    }
-    function pointerUp() {
-      dragging = false;
-      canvas.style.cursor = 'grab';
-    }
-
-    canvas.addEventListener('mousedown', pointerDown);
-    canvas.addEventListener('touchstart', pointerDown, {passive: false});
-
-    canvas.addEventListener('mousemove', pointerMove);
-    canvas.addEventListener('touchmove', pointerMove, {passive: false});
-
-    canvas.addEventListener('mouseup', pointerUp);
-    canvas.addEventListener('mouseleave', pointerUp);
-    canvas.addEventListener('touchend', pointerUp);
-    canvas.addEventListener('touchcancel', pointerUp);
-
-    // Download image
     function downloadImage() {
       const link = document.createElement('a');
       link.download = 'photo.png';
       link.href = canvas.toDataURL('image/png');
       link.click();
-      countRef.transaction(n => (n || 0) + 1);
+      incrementCount();
     }
 
-    // Share image with native phone share
     function shareImage() {
       canvas.toBlob(blob => {
         const file = new File([blob], 'photo.png', { type: 'image/png' });
-        if(navigator.canShare && navigator.canShare({ files: [file] })) {
-          navigator.share({
-            files: [file],
-            title: 'Photo with Frame',
-            text: 'Check out this framed photo!',
-          }).then(() => {
-            countRef.transaction(n => (n || 0) + 1);
-          }).catch(console.error);
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          navigator.share({ files: [file], title: 'Photo', text: 'Check this out!' });
         } else {
-          alert('Sharing not supported on this device/browser. Please download the image.');
+          alert('Sharing not supported on this browser.');
         }
+        incrementCount();
       });
     }
 
-    // Responsive canvas sizing on desktop browsers (max width 1080)
-    function resizeCanvas() {
-      const maxWidth = 1080;
-      const margin = 40;
-      const width = Math.min(window.innerWidth - margin, maxWidth);
-      canvas.style.width = width + 'px';
-      canvas.style.height = width + 'px';
+    function incrementCount() {
+      countRef.transaction(current => {
+        return (current || 0) + 1;
+      });
     }
-    window.addEventListener('resize', resizeCanvas);
-    window.addEventListener('load', () => {
-      resizeCanvas();
-      draw();
+
+    // Drag to move image (mouse and touch)
+    let isDragging = false;
+    let dragStartX = 0;
+    let dragStartY = 0;
+
+    canvas.addEventListener('mousedown', e => {
+      isDragging = true;
+      dragStartX = e.offsetX - posX;
+      dragStartY = e.offsetY - posY;
+    });
+
+    canvas.addEventListener('mouseup', e => {
+      isDragging = false;
+    });
+
+    canvas.addEventListener('mouseleave', e => {
+      isDragging = false;
+    });
+
+    canvas.addEventListener('mousemove', e => {
+      if (isDragging) {
+        posX = e.offsetX - dragStartX;
+        posY = e.offsetY - dragStartY;
+        draw();
+      }
+    });
+
+    // Touch events for mobile drag
+    canvas.addEventListener('touchstart', e => {
+      if(e.touches.length === 1){
+        const touch = e.touches[0];
+        const rect = canvas.getBoundingClientRect();
+        isDragging = true;
+        dragStartX = touch.clientX - rect.left - posX;
+        dragStartY = touch.clientY - rect.top - posY;
+      }
+    });
+
+    canvas.addEventListener('touchmove', e => {
+      if (isDragging && e.touches.length === 1) {
+        const touch = e.touches[0];
+        const rect = canvas.getBoundingClientRect();
+        posX = touch.clientX - rect.left - dragStartX;
+        posY = touch.clientY - rect.top - dragStartY;
+        draw();
+      }
+    });
+
+    canvas.addEventListener('touchend', e => {
+      isDragging = false;
     });
   </script>
 
